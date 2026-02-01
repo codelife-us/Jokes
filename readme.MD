@@ -42,10 +42,10 @@ g++ -std=c++20 dadjokes.cpp -o dadjokes
 # Display one random joke
 ./dadjokes
 
-# Display all sayings shuffled, and show the unique joke number
+# Display all jokes shuffled, and show the unique joke number
 ./dadjokes -a -sn
 
-# Display one random sayings in colors
+# Display one random joke in colors
 ./dadjokes --color
 
 # Display all jokes shuffled with colors on one line
