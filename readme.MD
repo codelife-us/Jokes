@@ -33,7 +33,7 @@ g++ -std=c++20 dadjokes.cpp -o dadjokes
 - `-a, --all` - Display all jokes shuffled
 - `-t, --together` - Display joke setup on one line and punchline on one line with colon separator
 - `-c, --color` - Colored output: cyan for setup, green for punchline
-- `-p, --pick xxx` - Display a saying by number following
+- `-p, --pick xxx` - Display a joke that is picked by number following
 - `-sn, --shownumber` -Show the joke number in the output with brackets around it
 
 ### Examples
