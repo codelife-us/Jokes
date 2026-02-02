@@ -23,14 +23,14 @@
 // Dad Jokes
 //     by Code Life
 //     command line version using modern C++20
-//     version 1.0 - 2/01/2026
+//     version 1.0 - 2/02/2026
 // Description: A collection of Dad Jokes via command line.
 //
 // Command Line Options:
 //   (none)               Display a single random joke (default)
 //   -a,  --all           Display all jokes in shuffled order
 //   -t,  --together      Display setup and punchline on one line with colon separator
-//   -c,  --color         Colored output: cyan for setup, green for punchline
+//   -c,  --color         Colored output: pink for setup, orange for punchline
 //   -sn, --shownumber    Display the number of the joke  
 //   -h,  --help          Display this help message
 
@@ -147,7 +147,12 @@ const unordered_map<int, DadJoke> dadJokes = {
     {97, {"Why did the computer go to the doctor?", "Because it had a virus."}},
     {98, {"Did you hear about the restaurant on the moon?", "Great food, no atmosphere."}},
     {99, {"Why do river banks work so well?", "They have high current-cy."}},
-    {100, {"Have you heard about the new corduroy pillows?", "They're making headlines."}}        
+    {100, {"Have you heard about the new corduroy pillows?", "They're making headlines."}},
+    {101, {"Every morning for the past three months, I announce loudly to the family that I'm going for a jog, and then I don't","It's my longest running joke of this year."}},
+    {102, {"Why do ghosts love elevators?","Because it lifts their spirits."}},
+    {103, {"Why did the girl keep her trumpet out in the snow?","Because she liked cool jazz."}},
+    {104, {"A weasel walks into a bar, and the bartender says,\n\"Wow, I've never seen a weasel before. What can I get you?\"","\"Pop,\" goes the weasel"}},
+    {105, {"How do you console an English teacher?","There, their, they're."}}
 };
 
 void outputJoke(const DadJoke& joke, int jokeNumber, bool separateLines = false, bool colored = false, bool showNumber = false) {
@@ -157,43 +162,43 @@ void outputJoke(const DadJoke& joke, int jokeNumber, bool separateLines = false,
     const string resetColor = "\033[0m";     // Reset to default
     
     if (showNumber) {
-        std::cout << "[" << jokeNumber << "] ";
+        cout << "[" << jokeNumber << "] ";
     }
     
     if (colored) {
         if (separateLines) {
-            std::cout << cyanColor << joke.setup << resetColor << "\n"
+            cout << cyanColor << joke.setup << resetColor << "\n"
                       << greenColor << joke.punchline << resetColor << "\n\n";
         } else {
-            std::cout << cyanColor << joke.setup << resetColor << ": "
+            cout << cyanColor << joke.setup << resetColor << ": "
                       << greenColor << joke.punchline << resetColor << "\n";
         }
     } else {
         if (separateLines) {
-            std::cout << joke.setup << "\n" << joke.punchline << "\n\n";
+            cout << joke.setup << "\n" << joke.punchline << "\n\n";
         } else {
-            std::cout << joke.setup << ": " << joke.punchline << "\n";
+            cout << joke.setup << ": " << joke.punchline << "\n";
         }
     }
 }
 
 void displayHelp() {
-    std::cout << "Dad Jokes - A collection of Dad Jokes\n\n";
-    std::cout << "Usage: ./dadjokes [OPTIONS]\n\n";
-    std::cout << "Options:\n";
-    std::cout << "  (none)                Display a single random joke (default)\n\n";
-    std::cout << "  -a, --all             Display all jokes in shuffled order\n";
-    std::cout << "  -t, --together        Display joke setup and punchline on one line with a colon separator\n";
-    std::cout << "  -c, --color           Colored output: pink for saying, orange for meaning\n";
-    std::cout << "  -sn, --shownumber     Display the number of the joke\n";
-    std::cout << "  -p, --picknumber xxx  Display joke by number, supply number after\n";
-    std::cout << "  -h, --help            Display this help message\n";
-    std::cout << "Examples:\n";
-    std::cout << "  ./dadjokes                       - Display one random joke\n";
-    std::cout << "  ./dadjokes -a                    - Display all jokes shuffled\n";
-    std::cout << "  ./dadjokes --color               - Display one random joke in color\n";
-    std::cout << "  ./dadjokes -a --color -t         - Display all jokes with colors on one line\n";
-    std::cout << "  ./dadjokes -p 2                  - Display joke #2\n";
+    cout << "Dad Jokes - A collection of Dad Jokes\n\n";
+    cout << "Usage: ./dadjokes [OPTIONS]\n\n";
+    cout << "Options:\n";
+    cout << "  (none)                Display a single random joke (default)\n\n";
+    cout << "  -a, --all             Display all jokes in shuffled order\n";
+    cout << "  -t, --together        Display joke setup and punchline on one line with a colon separator\n";
+    cout << "  -c, --color           Colored output: cyan for joke, green for punchline\n";
+    cout << "  -sn, --shownumber     Display the number of the joke\n";
+    cout << "  -p, --picknumber xxx  Display joke by number, supply number after\n";
+    cout << "  -h, --help            Display this help message\n";
+    cout << "Examples:\n";
+    cout << "  ./dadjokes                       - Display one random joke\n";
+    cout << "  ./dadjokes -a                    - Display all jokes shuffled\n";
+    cout << "  ./dadjokes --color               - Display one random joke in color\n";
+    cout << "  ./dadjokes -a --color -t         - Display all jokes with colors on one line\n";
+    cout << "  ./dadjokes -p 2                  - Display joke #2\n";
 }
 
 int main(int argc, char* argv[]) {
@@ -227,7 +232,7 @@ int main(int argc, char* argv[]) {
             }
         }
     } catch (...) {
-        std::cerr << "Error parsing command line arguments.\n";
+        cerr << "Error parsing command line arguments.\n";
         return 1;
     }   
 
@@ -236,8 +241,8 @@ int main(int argc, char* argv[]) {
     
     if (showAll) {
         // Display all sayings (shuffled)
-        std::cout << "Dad Jokes - A collection of Dad Jokes\n";
-        std::cout << "Brought to you by Code Life\n\n";
+        cout << "Dad Jokes - A collection of Dad Jokes\n";
+        cout << "Brought to you by Code Life\n\n";
         
         vector<int> jokeKeys;
         for (const auto& pair : dadJokes) {
@@ -245,14 +250,14 @@ int main(int argc, char* argv[]) {
         }
         random_device rd;
         mt19937 gen(rd());
-        std::shuffle(jokeKeys.begin(), jokeKeys.end(), gen);
+        shuffle(jokeKeys.begin(), jokeKeys.end(), gen);
         
         for (int key : jokeKeys) {
             // Print each saying and its meaning
             outputJoke(dadJokes.at(key), key, separateLines, colored, showNumber);
         }
         
-        std::cout << "\nTotal jokes: " << dadJokes.size() << "\n";
+        cout << "\nTotal jokes: " << dadJokes.size() << "\n";
     } else {
         // Default: Display a single random saying
         random_device rd;
@@ -263,7 +268,7 @@ int main(int argc, char* argv[]) {
         if (pickJokeByNumber) {
             jokeKey = jokeNumber;
             if (jokeKey < 1 || jokeKey > dadJokes.size()) {
-                std::cerr << "Joke number out of range. Please pick a number between 1 and " << dadJokes.size() << ".\n";
+                cerr << "Joke number out of range. Please pick a number between 1 and " << dadJokes.size() << ".\n";
                 return 1;
             }
         }
