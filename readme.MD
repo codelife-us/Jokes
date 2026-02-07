@@ -44,19 +44,16 @@ g++ jokes.cpp -o jokes
 ```bash
 # Display one random joke
 ./jokes
-
+# Display one random Dad joke
+./jokes -t dad
 # Display all tech jokes shuffled, and show the unique joke number
 ./jokes -a -sn -t tech
-
 # Display one random joke in colors
 ./jokes --color
-
 # Display all jokes shuffled with colors on one line
 ./jokes -a --color -1
-
 # Display one random joke and show its number
 ./jokes -sn
-
 # Get help
 ./jokes -h
 ```
