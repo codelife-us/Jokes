@@ -60,7 +60,7 @@ g++ jokes.cpp -o jokes
 
 ## Features
 
-- 100+ jokes
+- 200+ jokes
 - Random selection or display all jokes
 - Optionally filter by type, default is dad type
 - Colored output support (cyan for setup, green for punchline)
