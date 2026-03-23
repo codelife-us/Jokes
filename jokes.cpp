@@ -30,240 +30,10 @@
 #include <iostream>
 #include <random>
 #include <algorithm>
-#include <vector>
 #include <numeric> // Required for std::iota
+#include "jokes_data.h" // Contains the vector<Joke> jokes with all the joke data
+
 using namespace std;
-
-struct Joke {
-    string type;   // e.g. "dad", "knock-knock", "pun", "math", "tech"
-    string setup;
-    string punchline;
-};
-
-// Converted from map to vector. IDs are now implicit (Index + 1).
-const vector<Joke> jokes = {
-    {"dad", "Why did the stadium get hot after the game?", "All of the fans left."},
-    {"dad", "What did the janitor say when he jumped out of the closet?", "Supplies!"},
-    {"dad", "How do you organize a space party?", "You planet."},
-    {"dad", "What do you call a parade of rabbits hopping backwards?", "A receding hare-line."},
-    {"dad", "Why do cows wear bells?", "Because their horns don't work."},
-    {"dad", "What do you call a sleepwalking nun?", "A roamin' Catholic."},
-    {"dad", "Why did the coffee file a police report?", "It got mugged."},
-    {"dad", "What do you call a pile of kittens?", "A meow-ntain."},
-    {"dad", "I'll tell you a joke about a roof.", "Never mind, it's over your head."},
-    {"dad", "What did the ocean say to the pirate?", "Nothing, it just waved."},
-    {"dad", "Why can’t you trust atoms?", "Because they make up everything."},
-    {"dad", "What do you call a snobby criminal going down the stairs?", "A condescending con, descending."},
-    {"dad", "To the man in the wheelchair who stole my camouflage jacket...", "You can hide, but you can't run."},
-    {"dad", "What did the fish say when he hit the wall?", "Dam."},
-    {"dad", "Why did the private tip-toe past the medicine cabinet?", "He didn't want to wake the sleeping pills."},
-    {"dad", "What’s the difference between a hippo and a zippo?", "One is really heavy, and the other is a little lighter."},
-    {"dad", "Why don't eggs tell jokes?", "They'd crack each other up."},
-    {"dad", "I used to play piano by ear...", "But now I use my hands."},
-    {"dad", "Why did the bicycle fall over?", "Because it was two-tired."},
-    {"dad", "What do you call a man with no body and no nose?", "Nobody nose."},
-    {"dad", "I'm reading a book on anti-gravity.", "It's impossible to put down."},
-    {"dad", "Did you hear about the kidnapping at school?", "It's okay, he woke up."},
-    {"dad", "What do you call a bear with no teeth?", "A gummy bear."},
-    {"dad", "Why did the mushroom go to the party?", "Because he was a fungi."},
-    {"dad", "What do you call fake spaghetti?", "An impasta."},
-    {"dad", "Why did the scarecrow win an award?", "Because he was outstanding in his field."},
-    {"dad", "Why don't skeletons fight each other?", "They don't have the guts."},
-    {"dad", "What do you call cheese that isn't yours?", "Nacho cheese."},
-    {"dad", "Why did the golfer bring two pairs of pants?", "In case he got a hole in one."},
-    {"dad", "What do you call an alligator in a vest?", "An investigator."},
-    {"dad", "Why did the tomato turn red?", "Because it saw the salad dressing."},
-    {"dad", "How does a penguin build its house?", "Igloos it together."},
-    {"dad", "What do you call a factory that makes good products?", "A satisfactory."},
-    {"dad", "Why did the cookie go to the hospital?", "Because he felt crummy."},
-    {"dad", "What do you call a dinosaur with an extensive vocabulary?", "A thesaurus."},
-    {"dad", "Why did the math book look sad?", "Because it had too many problems."},
-    {"dad", "What do you call a cow with no legs?", "Ground beef."},
-    {"dad", "Why was the big cat disqualified from the race?", "Because it was a cheetah."},
-    {"dad", "What do you call a fish wearing a bowtie?", "Sofishticated."},
-    {"dad", "Waitress: How did you find your steak Sir?","I just looked next to the potatoes and there it was."},
-    {"dad", "If you play guitar and want to know the secret to making it sound better,","Please stay tuned..."},
-    {"dad", "5 ants rented an apartment with another 5 ants.","Now they're tenants"},
-    {"dad", "What's the best present you can gift?","A broken drum.\nNobody can beat that."},
-    {"dad", "What did the buffalo say when his son left?","Bison"},
-    {"dad", "My daughter asked me if I had seen the dog bowl.","Me: No, I didn't even know he could."},
-    {"dad", "Why didn't the toilet paper make it across the street?","It got stuck in the crack."},
-    {"dad", "So far, Humpty Dumpty is having a terrible winter.","Which is frustrating, because he had a great fall."},
-    {"dad", "What do you call a nervous javelin thrower?","Shakespeare."},
-    {"dad", "What do you call a sketchy neighborhood in Italy?","The spaghetto."},
-    {"dad", "Why did the picture go to jail?","Because it was framed."},
-    {"dad", "Did you hear about the fire at the circus?", "It was in tents."},
-    {"dad", "I don't trust stairs.", "They're always up to something."},
-    {"dad", "What do you call a dog that does magic tricks?", "A labracadabra."},
-    {"dad", "Why did the old man fall in the well?", "Because he couldn't see that well."},
-    {"dad", "I ordered a chicken and an egg from Amazon.", "I'll let you know."},
-    {"dad", "What do you call a belt made out of watches?", "A waist of time."},
-    {"dad", "What kind of shoes do ninjas wear?", "Sneakers."},
-    {"dad", "How do you make a tissue dance?", "You put a little boogie in it."},
-    {"dad", "Why did the math teacher open a window?", "To let out the acute angles."},
-    {"dad", "What do you call a pig that does karate?", "A pork chop."},
-    {"dad", "I thought about going on an all-almond diet.", "But that's just nuts."},
-    {"dad", "Why don't some couples go to the gym?", "Because some relationships don't work out."},
-    {"dad", "What do you call a bee that can't make up its mind?", "A maybe."},
-    {"dad", "I would tell you a joke about time travel.", "But you didn't like it."},
-    {"dad", "Why do seagulls fly over the ocean?", "Because if they flew over the bay, they'd be bagels."},
-    {"dad", "What do you call a bear with no ears?", "B."},
-    {"dad", "Did you hear about the guy who invented the knock-knock joke?", "He won the 'no-bell' prize."},
-    {"dad", "I only know 25 letters of the alphabet.", "I don't know y."},
-    {"dad", "What has more letters than the alphabet?", "The post office."},
-    {"dad", "Why did the frog take the bus to work?", "His car got toad."},
-    {"dad", "I've got a great joke about construction.", "I'm still working on it."},
-    {"dad", "What did the grape do when he got stepped on?", "He let out a little wine."},
-    {"dad", "I used to be addicted to soap.", "But I'm clean now."},
-    {"dad", "Why are elevator jokes so good?", "They work on so many levels."},
-    {"dad", "What do you call a pony with a cough?", "A little hoarse."},
-    {"dad", "Did you hear about the guy who stole a calendar?", "He got 12 months."},
-    {"dad", "Why did the invisible man turn down the job offer?", "He couldn't see himself doing it."},
-    {"dad", "What does a sprinter eat before a race?", "Nothing, they fast."},
-    {"dad", "Why do melons have weddings?", "Because they cantaloupe."},
-    {"dad", "What do clouds wear under their shorts?", "Thunderwear."},
-    {"dad", "What kind of car does an egg drive?", "A yolkswagen."},
-    {"dad", "Why was the computer cold?", "It left its Windows open."},
-    {"dad", "Where do bees go to the bathroom?", "The BP station."},
-    {"dad", "Why do golfers love donuts?", "Because there's a hole in the middle."},
-    {"dad", "News: A man lost his left arm and left leg in a car crash.", "He's all right now."},
-    {"dad", "What kind of candy do astronauts like?", "Mars bars."},
-    {"dad", "What did one wall say to the other?", "I'll meet you at the corner."},
-    {"dad", "I think I'm sick of taking the elevator.", "I think I'm coming down with something."},
-    {"dad", "What did the termite say when he walked into the bar?", "Is the bar tender here?"},
-    {"dad", "What do you call a sheep that knows karate?", "A lamb chop."},
-    {"dad", "Why did the tree go to the dentist?", "It needed a root canal."},
-    {"dad", "Did you hear about the Italian chef that died?", "He pasta way."},
-    {"dad", "What is an astronaut's favorite part of a computer?", "The space bar."},
-    {"dad", "Why did the computer go to the doctor?", "Because it had a virus."},
-    {"dad", "Did you hear about the restaurant on the moon?", "Great food, no atmosphere."},
-    {"dad", "Why do river banks work so well?", "They have high current-cy."},
-    {"dad", "Have you heard about the new corduroy pillows?", "They're making headlines."},
-    {"dad", "Every morning for the past three months, I announce loudly to the family that I'm going for a jog, and then I don't","It's my longest running joke of this year."},
-    {"dad", "Why do ghosts love elevators?","Because it lifts their spirits."},
-    {"dad", "Why did the girl keep her trumpet out in the snow?","Because she liked cool jazz."},
-    {"dad", "A weasel walks into a bar, and the bartender says,\n\"Wow, I've never seen a weasel before. What can I get you?\"","\"Pop,\" goes the weasel"},
-    {"dad", "How do you console an English teacher?","There, their, they're."},
-    {"dad", "My dental hygienist won a national award for teeth cleaning.","She proudly displays the plaque on her desk."},
-    {"dad", "What do you call a man with a rubber toe?", "Roberto."},
-    {"dad", "What do you call a fat psychic?", "A four-chin teller."},
-    {"dad", "My documentary film \"I have stolen all your chairs\"", "just received a 90 minute standing ovation."},
-    {"dad", "I found a coin on the ground in the parking lot today. It had teeth marks on it.","It was a bitcoin."},
-    {"dad", "Due to the storm I ran out of toilet paper and had to use newspaper.", "The Times are rough."},
-    {"dad", "What do you call a dad that has fallen through the ice?","A Popsicle."},
-    {"dad", "Dad at breakfast: I’ll have bacon and eggs, please. Waiter: How do you like your eggs?", "Dad: I don't know, I don't have them yet."},
-    {"dad", "I sing when I'm in my car, but only in reverse.", "I'm a backup singer."},
-    {"dad", "Why did the scarecrow become a successful neurosurgeon?", "He was outstanding in his field."},
-    {"dad", "I used to hate facial hair.", "But then it grew on me."},
-    {"dad", "How do you make a water bed more bouncy?", "You add spring water."},
-    {"dad", "What happens when you witness a ship wreck?", "It creates a sinking feeling."},
-    {"dad", "Why did the melon jump into the lake?", "It wanted to be a water-melon."},
-    {"pun", "To the guy who invented zero,", "Thanks for nothing."},
-    {"pun", "I had a crazy dream last night! I was swimming in an ocean of orange soda.", "Turns out it was just a Fanta sea."},
-    {"pun", "I used to be a baker, but I couldn't make enough dough.", "I kneaded the money."},
-    {"pun", "I'm on a seafood diet.", "I see food and I eat it."},
-    {"pun", "I wondered why the baseball was getting bigger.", "Then it hit me."},
-    {"pun", "Did you hear about the guy whose left side was cut off?", "He's all right now."},
-    {"pun", "I'd tell you a chemistry joke but I know I wouldn't get a reaction.", "Na."},
-    {"pun", "The future, the present, and the past walked into a bar.", "Things got a little tense."},
-    {"pun", "I wasn't originally going to get a brain transplant.", "But then I changed my mind."},
-    {"pun", "Why did the scarecrow win an award?", "Because he was outstanding in his field."},
-    {"pun", "What do you call a sleeping bull?", "A bulldozer."},
-    {"pun", "I used to be a shoe salesman.", "But I couldn't fit in."},
-    {"pun", "I'm glad I know sign language.", "It's pretty handy."},
-    {"pun", "The rotation of the earth really makes my day.", "It really does."},
-    {"pun", "I couldn't figure out how to put my seatbelt on.", "Then it clicked."},
-    {"pun", "A man filed a police report for his missing luggage.", "But he never made a case."},    
-    {"pun", "I'm friends with 25 letters of the alphabet.", "I don't know Y."},
-    {"pun", "Light travels faster than sound.", "That's why some people appear bright until you hear them speak."},
-    {"pun", "I was wondering why the frisbee kept getting bigger.", "Then it hit me."},
-    {"pun", "When you dream in color, is it a pigment of your imagination?", "I suppose so."},
-    {"pun", "I couldn't remember how to throw a boomerang.", "But then it came back to me."},    
-    {"knock-knock", "Shore", "Shore hope you like bad jokes!"},
-    {"knock-knock", "Euripides", "Euripides clothes, you buy them!"},
-    {"knock-knock", "Lettuce", "Lettuce in, it's cold out here!"},
-    {"knock-knock", "Tank", "You're welcome."},
-    {"knock-knock", "Cow says", "No, a cow says mooooo!"},
-    {"knock-knock", "Who", "Is there an owl in here?"},
-    {"knock-knock", "Etch", "Bless you!"},
-    {"knock-knock", "Boo", "Don't cry, it's just a joke."},
-    {"knock-knock", "Harry", "Harry up and answer the door!"},
-    {"knock-knock", "Nobel", "No bell, that's why I knocked."},
-    {"knock-knock", "A little old lady", "I didn't know you could yodel!"},
-    {"knock-knock", "Water", "Water you doing asking who I am, open up!"},
-    {"knock-knock", "Leaf", "Leaf me alone!"},
-    {"knock-knock", "Figs", "Figs the doorbell, it's broken!"},
-    {"knock-knock", "Annie", "Annie body home?"},
-    {"knock-knock", "Wooden shoe", "Wooden shoe like to know!"},
-    {"knock-knock", "Amish", "Really? You don't look like a shoe."},
-    {"knock-knock", "Dishes", "Dishes the police, come out with your hands up!"},
-    {"knock-knock", "Canoe", "Canoe come out and play?"},
-    {"knock-knock", "Razor", "Razor hands, this is a stick up!"},
-    {"knock-knock", "Nana", "Nana your business."},
-    {"knock-knock", "Spell", "W-H-O."},    
-    {"knock-knock", "Atch", "Bless you!"},
-    {"knock-knock", "Woo", "Don't get too excited, it's just a joke."},
-    {"knock-knock", "Hawaii", "Hawaii you doing today?"},
-    {"knock-knock", "Cash", "No thanks, I prefer peanuts."},
-    {"knock-knock", "Owl", "Owl you know if you don't open the door?"},
-    {"math", "Why should you never talk to Pi?", "Because he'll go on forever."},
-    {"math", "What did the acorn say when he grew up?", "Geometry."},
-    {"math", "Why did the student eat his homework?", "Because the teacher said it was a piece of cake."},
-    {"math", "Are monsters good at math?", "Not really, unless you count Dracula."},
-    {"math", "Why is it sad that parallel lines have so much in common?", "Because they’ll never meet."},
-    {"math", "Why didn't the number 4 get into the nightclub?", "Because he is 2 square."},
-    {"math", "Why was the equal sign so humble?", "Because it knew it wasn't less than or greater than anyone else."},
-    {"math", "Why do plants hate math?", "Because it gives them square roots."},
-    {"math", "What do you call a number that can't keep still?", "A roamin' numeral."},
-    {"math", "Why was the math book sad?", "Because it had too many problems."},
-    {"math", "What do you call a snake that is 3.14 meters long?", "A pi-thon."},
-    {"math", "Why did the student do multiplication problems on the floor?", "The teacher told him not to use tables."},
-    {"math", "Why was the obtuse triangle always upset?", "Because it is never right."},
-    {"math", "Did you hear about the mathematician who's afraid of negative numbers?", "He'll stop at nothing to avoid them."},
-    {"math", "Why do teenagers travel in groups of 3?", "Because they can't even."},
-    {"math", "Why did the two 4s skip lunch?", "They already 8."},
-    {"math", "What did the triangle say to the circle?", "You're pointless."},
-    {"math", "I saw my math teacher with a piece of graph paper yesterday.", "I think she must be plotting something."},
-    {"math", "Why did the student get upset when his teacher called him average?", "It was a mean thing to say."},
-    {"math", "How do you stay warm in a cold room?", "Go to the corner, it's 90 degrees."},
-    {"math", "Why was six afraid of seven?", "Because seven eight nine!"},
-    {"math", "Why did the chicken cross the Mobius strip?", "To get to the same side."},
-    {"math", "What are 3.14 percent of sailors?", "Pi-rates."},
-    {"math", "Why can't a nose be 12 inches long?", "Because then it would be a foot."},
-    {"math", "Why did the geometric shape go to the gym?", "To get in better shape."},
-    {"math", "Who invented the Round Table?", "Sir Cumference."},
-    {"math", "What did the zero say to the eight?", "Nice belt!"},
-    {"math", "Why shouldn't you argue with a decimal?", "Decimals always have a point."},
-    {"math", "What do you call a crushed angle?", "A rectangle."},
-    {"math", "Why did the 30-60-90 triangle marry the 45-45-90 triangle?", "They were right for each other."},
-    {"math", "What do you call dudes who love math?", "Algebros."},
-    {"math", "What do you get when you divide the circumference of a jack-o-lantern by its diameter?", "Pumpkin Pi."},
-    {"tech", "What’s the biggest lie in the entire universe?", "I have read and agree to the Terms & Conditions."},
-    {"tech", "Why did the man get fired from his job at the keyboard factory?", "He wasn’t putting in enough shifts."},
-    {"tech", "There are 10 types of people in the world.", "Those who understand binary, and those who don't."},
-    {"tech", "Why do programmers always mix up Halloween and Christmas?", "Because Oct 31 equals Dec 25."},
-    {"tech", "A SQL query walks into a bar, walks up to two tables, and asks...", "Can I join you?"},
-    {"tech", "How many programmers does it take to change a light bulb?", "None, that's a hardware problem."},
-    {"tech", "Why did the programmer quit his job?", "Because he didn't get arrays."},
-    {"tech", "What is a programmer's favorite hangout place?", "Foo Bar."},
-    {"tech", "Why do Java programmers wear glasses?", "Because they don't C#."},
-    {"tech", "0 is false and 1 is true, right?", "1."},
-    {"tech", "What did the router say to the doctor?", "It hurts when IP."},
-    {"tech", "Why was the developer unhappy at their job?", "They wanted arrays."},
-    {"tech", "What do you call a computer floating in the ocean?", "A Dell Rolling in the Deep."},
-    {"tech", "Why did the PowerPoint presentation cross the road?", "To get to the other slide."},
-    {"tech", "Have you heard about the new band 1023 Megabytes?", "They haven't got a gig yet."},
-    {"tech", "What is the most used language in programming?", "Profanity."},
-    {"tech", "Why did the computer keep sneezing?", "It had a virus."},
-    {"tech", "What’s a computer’s favorite snack?", "Microchips."},
-    {"tech", "Why did the developer go broke?", "Because he used up all his cache."},
-    {"tech", "What do you call a program that sings?", "A wrapper."},
-    {"tech", "Why are Assembly programmers always soaking wet?", "They work below C-level."},
-    {"tech", "How does a computer get drunk?", "It takes screenshots."},    
-    {"tech", "Why did the QA engineer go to the bar?", "To order 1 beer, 0 beers, 999999999 beers, and a lizard."},
-    {"tech", "Why do programmers prefer dark mode?", "Because light attracts bugs."},
-    {"tech", "Why was the mobile phone wearing glasses?", "Because it lost its contacts."},
-};
 
 void outputJoke(const Joke& joke, int jokeNumber, bool separateLines = false, bool colored = false, bool showNumber = false, bool showType = false) {
     // ANSI color codes
@@ -288,7 +58,7 @@ void outputJoke(const Joke& joke, int jokeNumber, bool separateLines = false, bo
     if (separateLines) {
         cout << cyanColor << (joke.type == "knock-knock" ? "Knock knock!\nWho's there?\n" : "")
                 << joke.setup << (joke.type == "knock-knock" ? "\n" + joke.setup + " who?" : "") << resetColor << "\n"
-                << greenColor << joke.punchline << resetColor << "\n\n";
+                << greenColor << "\n" << joke.punchline << resetColor << "\n\n";
     } else {
         cout << cyanColor << (joke.type == "knock-knock" ? "Knock knock! Who's there? " : "")
                 << joke.setup << (joke.type == "knock-knock" ? " " + joke.setup + " who?" : "") << resetColor
@@ -303,7 +73,8 @@ void displayHelp() {
     cout << "  (none)                Display a single random joke (default)\n\n";
     cout << "  -a, --all             Display all jokes in shuffled order\n";
     cout << "  -1, --oneline         Display joke setup and punchline on one line with a colon separator\n";
-    cout << "  -c, --color           Colored output: cyan for joke, green for punchline\n";
+    cout << "  -c, --color           Colored output: cyan for joke, green for punchline (default)\n";
+    cout << "  -nc, --nocolor        Disable colored output\n";
     cout << "  -sn, --shownumber     Display the number of the joke\n";
     cout << "  -st, --showtype       Display the type of the joke\n";
     cout << "  -p, --picknumber xxx  Display joke by number, supply number after\n";
@@ -311,8 +82,8 @@ void displayHelp() {
     cout << "Examples:\n";
     cout << "  ./jokes                       - Display one random joke\n";
     cout << "  ./jokes -a                    - Display all jokes shuffled\n";
-    cout << "  ./jokes --color               - Display one random joke in color\n";
-    cout << "  ./jokes -a --color -1         - Display all jokes with colors on one line\n";
+    cout << "  ./jokes --nocolor             - Display one random joke without color\n";
+    cout << "  ./jokes -a -1                 - Display all jokes on one line (color is default)\n";
     cout << "  ./jokes -p 2                  - Display joke #2\n";
 }
 
@@ -320,7 +91,7 @@ int main(int argc, char* argv[]) {
     // Parse command line options
     bool together = false;      // -1 flag (default is separate lines)
     bool showAll = false;       // -a flag (default is single random)
-    bool colored = false;
+    bool colored = true;
     bool filterType = false;
     bool showNumber = false;    // -sn flag (default is false)
     bool showType = false;      // -st flag (default is false)
@@ -338,6 +109,8 @@ int main(int argc, char* argv[]) {
                 showAll = true;
             } else if (arg == "-c" || arg == "--color") {
                 colored = true;
+            } else if (arg == "-nc" || arg == "--nocolor") {
+                colored = false;
             } else if (arg == "-sn" || arg == "--shownumber") {
                 showNumber = true;
             } else if (arg == "-st" || arg == "--showtype") {
