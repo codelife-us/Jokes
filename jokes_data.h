@@ -300,5 +300,14 @@ const vector<Joke> jokes = {
     {"dad", "I know a lot of jokes about unemployed people but none of them work.", ""},
     {"dad", "I used to be a banker but I lost interest.", ""},
     {"dad", "I got a job at a bakery because I kneaded dough.", ""},
-    {"dad", "I wanted to learn how to drive a stick shift.", "But I couldn't find a manual."}
+    {"dad", "I wanted to learn how to drive a stick shift.", "But I couldn't find a manual."},
+    {"tech", "Why don't programmers like nature?", "It has too many bugs!"},
+    {"tech", "Why was the unemployed JavaScript developer sad?", "Because he didn't get callbacks!"},
+    {"tech", "A programmer was arrested for writing unreadable code.", "He refused to comment."},
+    {"tech", "What did 0 say to 1?", " You're a bit too much."},
+    {"tech", "Things aren’t always #000000 and #FFFFFF", ""},
+    {"tech", "Binary:", "It's as easy as 01, 10, 11."},
+    {"tech", "An SEO expert came by to take you to lunch.", "He asked if you wanted to go to a restaurant, drive-in, eatery, grill, joint, lunchroom, dive, greasy spoon, or hamburger stand."},
+    {"tech", "Where did the software developer go?", "He probably ransomware."},
+    {"tech", "Someone cracked my password.", "Now I need to rename my dog."}
 };
