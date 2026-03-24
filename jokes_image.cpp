@@ -106,6 +106,24 @@ struct Image {
 // Font
 // ----------------------------------------------------------------------------
 
+// Decode one UTF-8 codepoint from str at byte position i; advances i past it.
+// Returns the codepoint, or '?' for invalid sequences.
+static int nextCodepoint(const string& str, int& i) {
+    unsigned char b = str[i];
+    int cp;
+    int extra;
+    if      (b < 0x80) { cp = b;         extra = 0; }
+    else if (b < 0xE0) { cp = b & 0x1F;  extra = 1; }
+    else if (b < 0xF0) { cp = b & 0x0F;  extra = 2; }
+    else               { cp = b & 0x07;  extra = 3; }
+    i++;
+    for (int e = 0; e < extra; e++) {
+        if (i >= (int)str.size()) return '?';
+        cp = (cp << 6) | (str[i++] & 0x3F);
+    }
+    return cp;
+}
+
 struct Font {
     stbtt_fontinfo info;
     vector<uint8_t> buffer;
@@ -126,9 +144,10 @@ struct Font {
 
     int textWidth(const string& text) const {
         int width = 0;
-        for (char c : text) {
+        for (int i = 0; i < (int)text.size(); ) {
+            int cp = nextCodepoint(text, i);
             int advance, lsb;
-            stbtt_GetCodepointHMetrics(&info, c, &advance, &lsb);
+            stbtt_GetCodepointHMetrics(&info, cp, &advance, &lsb);
             width += (int)(advance * scale);
         }
         return width;
@@ -137,24 +156,26 @@ struct Font {
     void drawText(Image& img, const string& text, int x, int y,
                   uint8_t r, uint8_t g, uint8_t b) const {
         int cursor = x;
-        for (int i = 0; i < (int)text.size(); i++) {
-            int c = text[i];
-            if (i > 0)
-                cursor += (int)(stbtt_GetCodepointKernAdvance(&info, text[i-1], c) * scale);
+        int prev = 0;
+        for (int i = 0; i < (int)text.size(); ) {
+            int cp = nextCodepoint(text, i);
+            if (prev)
+                cursor += (int)(stbtt_GetCodepointKernAdvance(&info, prev, cp) * scale);
 
             int advance, lsb;
-            stbtt_GetCodepointHMetrics(&info, c, &advance, &lsb);
+            stbtt_GetCodepointHMetrics(&info, cp, &advance, &lsb);
 
             int x0, y0, x1, y1;
-            stbtt_GetCodepointBitmapBox(&info, c, scale, scale, &x0, &y0, &x1, &y1);
+            stbtt_GetCodepointBitmapBox(&info, cp, scale, scale, &x0, &y0, &x1, &y1);
 
             int gw = x1 - x0, gh = y1 - y0;
             if (gw > 0 && gh > 0) {
                 vector<uint8_t> bitmap(gw * gh);
-                stbtt_MakeCodepointBitmap(&info, bitmap.data(), gw, gh, gw, scale, scale, c);
+                stbtt_MakeCodepointBitmap(&info, bitmap.data(), gw, gh, gw, scale, scale, cp);
                 img.blendGlyph(bitmap.data(), gw, gh, cursor + x0, y + y0, r, g, b);
             }
             cursor += (int)(advance * scale);
+            prev = cp;
         }
     }
 
