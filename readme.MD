@@ -34,8 +34,7 @@ g++ jokes.cpp -o jokes
 - `-t, --type` - Default is no filter (all), but if specified, it will select from that type of joke
 -                 types that can be used are all,dad,tech,pun,knock-knock,math
 - `-1, --oneline` - Display joke setup on one line and punchline on one line with colon separator
-- `-c, --color` - Colored output: cyan for setup, green for punchline *(default)*
-- `-nc, --nocolor` - Disable colored output
+- `-nc, --nocolor` - Disable colored output (color is on by default)
 - `-p, --pick xxx` - Display a joke that is picked by the number following
 - `-sn, --shownumber` -Show the joke number in the output with brackets around it
 - `-st, --showtype` -Show the type in the output with brackets around it
@@ -61,10 +60,10 @@ g++ jokes.cpp -o jokes
 
 ## Features
 
-- 200+ jokes
+- 280+ jokes
 - Random selection or display all jokes
 - Optionally filter by type, default is dad type
-- Colored output by default (cyan for setup, green for punchline), with `--nocolor` to disable
+- Colored output by default (cyan for setup, green for punchline), use `--nocolor` to disable
 - Separate line formatting option for more compact format
 - Automatic shuffling of jokes
 - Helpful command-line interface with built-in help
