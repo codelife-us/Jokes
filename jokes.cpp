@@ -24,6 +24,7 @@
 //     by Code Life
 //     command line version using modern C++
 //     version 1.1 - 2/06/2026
+//     version 2.0 - 3/23/2026 - no --color is necessary since color is now on by default; also using jokes_data.h for jokes
 // Description: A collection of jokes via command line.
 
 #include <string>
@@ -73,8 +74,7 @@ void displayHelp() {
     cout << "  (none)                Display a single random joke (default)\n\n";
     cout << "  -a, --all             Display all jokes in shuffled order\n";
     cout << "  -1, --oneline         Display joke setup and punchline on one line with a colon separator\n";
-    cout << "  -c, --color           Colored output: cyan for joke, green for punchline (default)\n";
-    cout << "  -nc, --nocolor        Disable colored output\n";
+    cout << "  -nc, --nocolor        Disable colored output (color is on by default)\n";
     cout << "  -sn, --shownumber     Display the number of the joke\n";
     cout << "  -st, --showtype       Display the type of the joke\n";
     cout << "  -p, --picknumber xxx  Display joke by number, supply number after\n";
@@ -107,8 +107,6 @@ int main(int argc, char* argv[]) {
                 together = true;
             } else if (arg == "-a" || arg == "--all") {
                 showAll = true;
-            } else if (arg == "-c" || arg == "--color") {
-                colored = true;
             } else if (arg == "-nc" || arg == "--nocolor") {
                 colored = false;
             } else if (arg == "-sn" || arg == "--shownumber") {
