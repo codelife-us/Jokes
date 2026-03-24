@@ -307,7 +307,7 @@ const vector<Joke> jokes = {
     {"tech", "What did 0 say to 1?", " You're a bit too much."},
     {"tech", "Things aren’t always #000000 and #FFFFFF", ""},
     {"tech", "Binary:", "It's as easy as 01, 10, 11."},
-    {"tech", "An SEO expert came by to take me to lunch.", "He asked if you wanted to go to a restaurant, drive-in, eatery, grill, joint, lunchroom, dive, greasy spoon, or hamburger stand."},
+    {"tech", "An SEO expert came by to take me to lunch.", "He asked if I wanted to go to a restaurant, drive-in, eatery, grill, joint, lunchroom, dive, greasy spoon, or hamburger stand."},
     {"tech", "Where did the software developer go?", "He probably ransomware."},
     {"tech", "Someone cracked my password.", "Now I need to rename my dog."}
 };
