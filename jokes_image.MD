@@ -45,7 +45,7 @@ No other dependencies — the stb headers are the only requirement.
 
 - 800x420 pixel JPEG, quality 90
 - White background with a blue frame
-- Small grey label: `Joke #N  [type]`
+- Small grey label: `Code Life Joke #N  [type]`
 - Setup text in cyan (knock-knock jokes include the full prompt)
 - Punchline in green
 - Text is word-wrapped to fit within the frame
