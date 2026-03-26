@@ -13,7 +13,7 @@ To compile the program, use the provided build task:
 
 For Mac
 ```bash
-clang++ -stdlib=libc++ -fcolor-diagnostics -fansi-escape-codes -g jokes.cpp -o jokes
+clang++ jokes.cpp -o jokes
 ```
 For Linux
 ```bash
