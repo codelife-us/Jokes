@@ -354,5 +354,6 @@ const vector<Joke> jokes = {
     {"dad", "Why was the stadium so cool? ", "It was filled with fans."},
     {"dad", "Why did the banana go to the doctor?", "It was not peeling well."},
     {"dad", "I used to run a dating service for chickens.", "But I was struggling to make hens meet."},
-    {"dad", "I’m not a fan of spring cleaning.", "To be honest, I’m not into summer, fall, or winter cleaning either."}
+    {"dad", "I’m not a fan of spring cleaning.", "To be honest, I’m not into summer, fall, or winter cleaning either."},
+    {"dad", "Where do lizards go after their tail falls off?", "The retail store."}
 };
