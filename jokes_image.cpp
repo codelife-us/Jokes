@@ -23,10 +23,10 @@
 // Jokes Image
 //     by Code Life
 //     generates a .jpg image of a joke
-//     version 1.1 - 3/30/2026
+//     version 2.0 - 3/30/2026
 // Description: Outputs a joke as a framed .jpg image file using stb_truetype + stb_image_write.
 //              Requires: stb_truetype.h, stb_image_write.h (drop in project directory)
-//              Usage: ./jokes_image -p <number> [-o <filename>] [-f <fontpath>] [-t <theme>]
+//              Usage: ./jokes_image -p <number> [-o <filename>] [-f <fontpath>] [-t <theme>] [--noborder]
 
 #define STB_TRUETYPE_IMPLEMENTATION
 #define STB_IMAGE_WRITE_IMPLEMENTATION
@@ -42,6 +42,8 @@
 #include "jokes_data.h"
 
 using namespace std;
+
+static const char* VERSION = "2.0";
 
 // ----------------------------------------------------------------------------
 // Theme
@@ -247,7 +249,7 @@ struct Font {
 // ----------------------------------------------------------------------------
 
 bool jokeToJpeg(const Joke& joke, int jokeNumber, const string& filename,
-                const string& fontPath, const Theme& theme) {
+                const string& fontPath, const Theme& theme, bool noborder = false) {
     const int W      = 800, H = 500;
     const int MARGIN = 50;
     const int FRAME  = 16;
@@ -262,8 +264,9 @@ bool jokeToJpeg(const Joke& joke, int jokeNumber, const string& filename,
     }
 
     // Outer frame
-    img.drawRect(FRAME, FRAME, W - FRAME, H - FRAME,
-                 theme.border.r, theme.border.g, theme.border.b, 5);
+    if (!noborder)
+        img.drawRect(FRAME, FRAME, W - FRAME, H - FRAME,
+                     theme.border.r, theme.border.g, theme.border.b, 5);
 
     int textMaxWidth = W - MARGIN * 2;
     int y = MARGIN + 28;
@@ -331,12 +334,15 @@ void displayHelp() {
     cout << "  -o, --output <file>   Output filename (default: joke_<number>.jpg)\n";
     cout << "  -f, --font <path>     Path to a .ttf or .ttc font file\n";
     cout << "  -t, --theme <name>    Color theme (default: classic)\n";
+    cout << "  -nb, --noborder       Omit the decorative border frame\n";
+    cout << "  -v,  --version        Print version and exit\n";
     cout << "  -h, --help            Display this help message\n\n";
     cout << "Themes: classic, dark, sunset, ocean, retro, night, all\n\n";
     cout << "Examples:\n";
     cout << "  ./jokes_image -p 5                     - Save joke_5.jpg\n";
     cout << "  ./jokes_image -p 5 -o funny.jpg        - Save funny.jpg\n";
     cout << "  ./jokes_image -p 5 -t dark             - Dark theme\n";
+    cout << "  ./jokes_image -p 5 --noborder          - No border frame (-nb)\n";
     cout << "  ./jokes_image -p 5 -f /path/to/font.ttf\n";
 }
 
@@ -349,6 +355,7 @@ int main(int argc, char* argv[]) {
     string outputFile;
     string fontPath    = defaultFontPath();
     string themeName   = "classic";
+    bool   noborder    = false;
 
     try {
         for (int i = 1; i < argc; i++) {
@@ -382,6 +389,11 @@ int main(int argc, char* argv[]) {
                     listThemes();
                     return 1;
                 }
+            } else if (arg == "--noborder" || arg == "-nb") {
+                noborder = true;
+            } else if (arg == "--version" || arg == "-v") {
+                cout << "jokes_image version " << VERSION << "\n";
+                return 0;
             } else if (arg == "-h" || arg == "--help") {
                 displayHelp();
                 return 0;
@@ -421,7 +433,7 @@ int main(int argc, char* argv[]) {
             string file = outputFile.empty()
                 ? "joke_" + to_string(jokeNumber) + "_" + kv.first + ".jpg"
                 : outputFile;
-            ok &= jokeToJpeg(joke, jokeNumber, file, fontPath, kv.second);
+            ok &= jokeToJpeg(joke, jokeNumber, file, fontPath, kv.second, noborder);
         }
         return ok ? 0 : 1;
     }
@@ -429,5 +441,5 @@ int main(int argc, char* argv[]) {
     if (outputFile.empty())
         outputFile = "joke_" + to_string(jokeNumber) + "_" + themeName + ".jpg";
 
-    return jokeToJpeg(joke, jokeNumber, outputFile, fontPath, THEMES.at(themeName)) ? 0 : 1;
+    return jokeToJpeg(joke, jokeNumber, outputFile, fontPath, THEMES.at(themeName), noborder) ? 0 : 1;
 }

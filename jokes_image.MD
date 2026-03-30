@@ -10,6 +10,8 @@ Generates a framed `.jpg` image of a joke from the jokes collection.
 ./jokes_image -p 5 -f /path/to/font.ttf   # custom font
 ./jokes_image -p 5 -t dark                 # dark theme
 ./jokes_image -p 5 -t all                  # save one image per theme
+./jokes_image -p 5 --noborder              # no border frame (or -nb)
+./jokes_image --version                    # print version (or -v)
 ./jokes_image -h                            # help
 ```
 
@@ -21,6 +23,8 @@ Generates a framed `.jpg` image of a joke from the jokes collection.
 | `-o, --output <file>` | Output filename (default: `joke_<number>_<theme>.jpg`) |
 | `-f, --font <path>` | Path to a `.ttf` or `.ttc` font file |
 | `-t, --theme <name>` | Color theme (default: `classic`); use `all` to output every theme |
+| `-nb, --noborder` | Omit the decorative border frame |
+| `-v, --version` | Print version and exit |
 | `-h, --help` | Display help message |
 
 ## Themes
