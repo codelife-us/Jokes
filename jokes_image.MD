@@ -5,9 +5,11 @@ Generates a framed `.jpg` image of a joke from the jokes collection.
 ## Usage
 
 ```bash
-./jokes_image -p 5                         # saves joke_5.jpg
+./jokes_image -p 5                         # saves joke_5_classic.jpg
 ./jokes_image -p 5 -o funny.jpg            # custom filename
 ./jokes_image -p 5 -f /path/to/font.ttf   # custom font
+./jokes_image -p 5 -t dark                 # dark theme
+./jokes_image -p 5 -t all                  # save one image per theme
 ./jokes_image -h                            # help
 ```
 
@@ -16,9 +18,23 @@ Generates a framed `.jpg` image of a joke from the jokes collection.
 | Option | Description |
 |---|---|
 | `-p, --pick <number>` | Joke number to render (required) |
-| `-o, --output <file>` | Output filename (default: `joke_<number>.jpg`) |
+| `-o, --output <file>` | Output filename (default: `joke_<number>_<theme>.jpg`) |
 | `-f, --font <path>` | Path to a `.ttf` or `.ttc` font file |
+| `-t, --theme <name>` | Color theme (default: `classic`); use `all` to output every theme |
 | `-h, --help` | Display help message |
+
+## Themes
+
+| Name | Background | Style |
+|---|---|---|
+| `classic` | White | Blue border, cyan setup, green punchline |
+| `dark` | Near-black | Blue border, bright cyan setup, mint punchline |
+| `sunset` | Warm cream | Burnt-orange border, amber text |
+| `ocean` | Pale blue | Deep blue border, ocean-blue text |
+| `retro` | Yellow | Brown border, amber text |
+| `night` | Deep navy | Purple border, lavender setup, teal punchline |
+
+Use `-t all` to generate one file per theme in a single run (e.g. `joke_5_classic.jpg`, `joke_5_dark.jpg`, …). The `-o` flag is ignored when using `all`.
 
 ## Build
 
@@ -43,11 +59,12 @@ No other dependencies — the stb headers are the only requirement.
 
 ## Output
 
-- 800x420 pixel JPEG, quality 90
-- White background with a blue frame
-- Small grey label: `Code Life Joke #N  [type]`
-- Setup text in cyan (knock-knock jokes include the full prompt)
-- Punchline in green
+- 800x500 pixel JPEG, quality 90
+- Themed background and border (see Themes above)
+- Text is larger (36px), bold, and horizontally centered
+- Small label centered just above the bottom border: `Code Life Jokes #N  [type]`
+- Setup text color and punchline color are theme-defined
+- Knock-knock jokes include the full "Knock knock / Who's there?" prompt
 - Text is word-wrapped to fit within the frame
 
 ## Default Font Paths
