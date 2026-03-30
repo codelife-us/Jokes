@@ -54,7 +54,7 @@ Generates a framed `.jpg` image of a joke from the jokes collection.
 | `ocean` | Pale blue | Deep blue border, ocean-blue text |
 | `retro` | Yellow | Brown border, amber text |
 | `night` | Deep navy | Purple border, lavender setup, teal punchline |
-| `white` | Near-black | Blue border, white setup, white punchline |
+| `white` | Near-black | White border, white setup, white punchline |
 
 Use `-t all` to generate one file per theme in a single run (e.g. `joke_5_classic.jpg`, `joke_5_dark.jpg`, …). The `-o` flag is ignored when using `all`.
 
