@@ -30,8 +30,10 @@
 
 #define STB_TRUETYPE_IMPLEMENTATION
 #define STB_IMAGE_WRITE_IMPLEMENTATION
+#define STB_IMAGE_IMPLEMENTATION
 #include "stb_truetype.h"
 #include "stb_image_write.h"
+#include "stb_image.h"
 
 #include <string>
 #include <iostream>
@@ -43,7 +45,7 @@
 
 using namespace std;
 
-static const char* VERSION = "2.0";
+static const char* VERSION = "2.1";
 
 // ----------------------------------------------------------------------------
 // Theme
@@ -133,6 +135,35 @@ struct Image {
 
     bool writeJpeg(const string& filename, int quality = 90) const {
         return stbi_write_jpg(filename.c_str(), w, h, 3, pixels.data(), quality) != 0;
+    }
+
+    // Load a JPEG/PNG and scale it to fill this image's dimensions (nearest-neighbor)
+    bool loadBackground(const string& path) {
+        int srcW, srcH, channels;
+        uint8_t* data = stbi_load(path.c_str(), &srcW, &srcH, &channels, 3);
+        if (!data) {
+            cerr << "Error: could not load background image: " << path << "\n";
+            return false;
+        }
+        for (int y = 0; y < h; y++) {
+            for (int x = 0; x < w; x++) {
+                int sx = x * srcW / w;
+                int sy = y * srcH / h;
+                uint8_t* src = data + (sy * srcW + sx) * 3;
+                uint8_t* dst = pixels.data() + (y * w + x) * 3;
+                dst[0] = src[0];
+                dst[1] = src[1];
+                dst[2] = src[2];
+            }
+        }
+        stbi_image_free(data);
+        return true;
+    }
+
+    // Darken the entire image by a factor in [0,1] to improve text legibility over a background
+    void applyDimOverlay(float factor = 0.45f) {
+        for (auto& p : pixels)
+            p = (uint8_t)(p * (1.0f - factor));
     }
 };
 
@@ -249,13 +280,19 @@ struct Font {
 // ----------------------------------------------------------------------------
 
 bool jokeToJpeg(const Joke& joke, int jokeNumber, const string& filename,
-                const string& fontPath, const Theme& theme, bool noborder = false) {
+                const string& fontPath, const Theme& theme, bool noborder = false,
+                const string& bgPath = "") {
     const int W      = 800, H = 500;
     const int MARGIN = 50;
     const int FRAME  = 16;
     const int LINE_H = 54;
 
     Image img(W, H, theme.bg.r, theme.bg.g, theme.bg.b);
+
+    if (!bgPath.empty()) {
+        if (!img.loadBackground(bgPath)) return false;
+        img.applyDimOverlay();
+    }
 
     Font font;
     if (!font.load(fontPath, 36)) {
@@ -334,6 +371,7 @@ void displayHelp() {
     cout << "  -o, --output <file>   Output filename (default: joke_<number>.jpg)\n";
     cout << "  -f, --font <path>     Path to a .ttf or .ttc font file\n";
     cout << "  -t, --theme <name>    Color theme (default: classic)\n";
+    cout << "  -bg, --background <file>  Use a .jpg/.png image as the background layer\n";
     cout << "  -nb, --noborder       Omit the decorative border frame\n";
     cout << "  -v,  --version        Print version and exit\n";
     cout << "  -h, --help            Display this help message\n\n";
@@ -344,6 +382,8 @@ void displayHelp() {
     cout << "  ./jokes_image -p 5 -t dark             - Dark theme\n";
     cout << "  ./jokes_image -p 5 --noborder          - No border frame (-nb)\n";
     cout << "  ./jokes_image -p 5 -f /path/to/font.ttf\n";
+    cout << "  ./jokes_image -p 5 -bg photo.jpg          - Use photo.jpg as background\n";
+    cout << "  ./jokes_image -p 5 -bg photo.jpg -nb      - Background with no border\n";
 }
 
 // ----------------------------------------------------------------------------
@@ -356,6 +396,7 @@ int main(int argc, char* argv[]) {
     string fontPath    = defaultFontPath();
     string themeName   = "classic";
     bool   noborder    = false;
+    string bgPath;
 
     try {
         for (int i = 1; i < argc; i++) {
@@ -387,6 +428,13 @@ int main(int argc, char* argv[]) {
                 } else {
                     cerr << "Error: --theme requires a name.\n";
                     listThemes();
+                    return 1;
+                }
+            } else if (arg == "-bg" || arg == "--background") {
+                if (i + 1 < argc) {
+                    bgPath = argv[++i];
+                } else {
+                    cerr << "Error: --background requires a file path.\n";
                     return 1;
                 }
             } else if (arg == "--noborder" || arg == "-nb") {
@@ -433,7 +481,7 @@ int main(int argc, char* argv[]) {
             string file = outputFile.empty()
                 ? "joke_" + to_string(jokeNumber) + "_" + kv.first + ".jpg"
                 : outputFile;
-            ok &= jokeToJpeg(joke, jokeNumber, file, fontPath, kv.second, noborder);
+            ok &= jokeToJpeg(joke, jokeNumber, file, fontPath, kv.second, noborder, bgPath);
         }
         return ok ? 0 : 1;
     }
@@ -441,5 +489,5 @@ int main(int argc, char* argv[]) {
     if (outputFile.empty())
         outputFile = "joke_" + to_string(jokeNumber) + "_" + themeName + ".jpg";
 
-    return jokeToJpeg(joke, jokeNumber, outputFile, fontPath, THEMES.at(themeName), noborder) ? 0 : 1;
+    return jokeToJpeg(joke, jokeNumber, outputFile, fontPath, THEMES.at(themeName), noborder, bgPath) ? 0 : 1;
 }
