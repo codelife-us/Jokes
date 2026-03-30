@@ -36,8 +36,9 @@ g++ jokes.cpp -o jokes
 - `-1, --oneline` - Display joke setup on one line and punchline on one line with colon separator
 - `-nc, --nocolor` - Disable colored output (color is on by default)
 - `-p, --pick xxx` - Display a joke that is picked by the number following
-- `-sn, --shownumber` -Show the joke number in the output with brackets around it
-- `-st, --showtype` -Show the type in the output with brackets around it
+- `-sn, --shownumber` - Show the joke number in the output with brackets around it
+- `-st, --showtype` -S how the type in the output with brackets around it
+- `-v, --version` - Display the version number
 
 ### Examples
 
@@ -60,7 +61,7 @@ g++ jokes.cpp -o jokes
 
 ## Features
 
-- 340+ jokes
+- 357 jokes
 - Random selection or display all jokes
 - Optionally filter by type, default is dad type
 - Colored output by default (cyan for setup, green for punchline), use `--nocolor` to disable
