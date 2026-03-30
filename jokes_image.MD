@@ -10,6 +10,8 @@ Generates a framed `.jpg` image of a joke from the jokes collection.
 ./jokes_image -p 5 -f /path/to/font.ttf   # custom font
 ./jokes_image -p 5 -t dark                 # dark theme
 ./jokes_image -p 5 -t all                  # save one image per theme
+./jokes_image -p 5 -bg photo.jpg           # use photo.jpg as background
+./jokes_image -p 5 -bg photo.jpg -nb      # background with no border
 ./jokes_image -p 5 --noborder              # no border frame (or -nb)
 ./jokes_image --version                    # print version (or -v)
 ./jokes_image -h                            # help
@@ -23,6 +25,7 @@ Generates a framed `.jpg` image of a joke from the jokes collection.
 | `-o, --output <file>` | Output filename (default: `joke_<number>_<theme>.jpg`) |
 | `-f, --font <path>` | Path to a `.ttf` or `.ttc` font file |
 | `-t, --theme <name>` | Color theme (default: `classic`); use `all` to output every theme |
+| `-bg, --background <file>` | Use a `.jpg` or `.png` image as the background layer |
 | `-nb, --noborder` | Omit the decorative border frame |
 | `-v, --version` | Print version and exit |
 | `-h, --help` | Display help message |
@@ -42,14 +45,7 @@ Use `-t all` to generate one file per theme in a single run (e.g. `joke_5_classi
 
 ## Build
 
-Download the two stb header files into the project directory:
-
-```bash
-curl -O https://raw.githubusercontent.com/nothings/stb/master/stb_truetype.h
-curl -O https://raw.githubusercontent.com/nothings/stb/master/stb_image_write.h
-```
-
-Compile:
+The required stb headers (`stb_truetype.h`, `stb_image_write.h`, `stb_image.h`) are included in the repository — no separate download needed.
 
 ```bash
 # macOS / Linux
@@ -59,12 +55,11 @@ g++ -std=c++17 -O2 jokes_image.cpp -o jokes_image
 g++ -std=c++17 -O2 jokes_image.cpp -o jokes_image.exe
 ```
 
-No other dependencies — the stb headers are the only requirement.
-
 ## Output
 
 - 800x500 pixel JPEG, quality 90
-- Themed background and border (see Themes above)
+- Themed background and border (see Themes above), or a custom background image via `-bg`
+- When a background image is used, it is scaled to fill 800x500 and dimmed (45%) so text stays legible
 - Text is larger (36px), bold, and horizontally centered
 - Small label centered just above the bottom border: `Code Life Jokes #N  [type]`
 - Setup text color and punchline color are theme-defined
