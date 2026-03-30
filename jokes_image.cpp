@@ -45,7 +45,7 @@
 
 using namespace std;
 
-static const char* VERSION = "2.1";
+static const char* VERSION = "2.2";
 
 // ----------------------------------------------------------------------------
 // Theme
@@ -69,6 +69,7 @@ static const map<string, Theme> THEMES = {
     { "ocean",   { {220,240,255}, {20,  80, 160}, {10, 100, 180}, {20, 140, 160}, {100,140,170} } },
     { "retro",   { {255,255,200}, {160,  80,   0}, {120,  60,   0}, {180, 100,   0}, {140,120, 60} } },
     { "night",   { {15,  15,  30}, {100,  60, 200}, {160, 100, 255}, {100, 220, 180}, {130,120,160} } },
+    { "white",   { {30,  30,  40}, {255, 255, 255}, {255, 255, 255}, {255, 255, 255}, {200,200,200} } },
 };
 
 static void listThemes() {
@@ -423,6 +424,22 @@ string defaultFontPath() {
 }
 
 // ----------------------------------------------------------------------------
+// Hex color parser  (#rrggbb or rrggbb)
+// ----------------------------------------------------------------------------
+
+static bool parseHexColor(const string& s, Color& out) {
+    string h = s;
+    if (!h.empty() && h[0] == '#') h = h.substr(1);
+    if (h.size() != 6) return false;
+    try {
+        out.r = (uint8_t)stoul(h.substr(0, 2), nullptr, 16);
+        out.g = (uint8_t)stoul(h.substr(2, 2), nullptr, 16);
+        out.b = (uint8_t)stoul(h.substr(4, 2), nullptr, 16);
+    } catch (...) { return false; }
+    return true;
+}
+
+// ----------------------------------------------------------------------------
 // Help
 // ----------------------------------------------------------------------------
 
@@ -439,11 +456,14 @@ void displayHelp() {
     cout << "  --nofooter            Omit the 'Code Life Jokes' label and leave the border intact\n";
     cout << "  --setup \"text\"        Use custom setup text instead of a joke from the data\n";
     cout << "  --punchline \"text\"    Use custom punchline text instead of a joke from the data\n";
+    cout << "  --setupcolor \"#rrggbb\"     Override the setup text color (hex, quote the value)\n";
+    cout << "  --punchlinecolor \"#rrggbb\" Override the punchline text color (hex, quote the value)\n";
+    cout << "  --bordercolor \"#rrggbb\"    Override the border color (hex, quote the value)\n";
     cout << "  -rc, --roundedcorners Use rounded corners on the border frame\n";
     cout << "  -nb, --noborder       Omit the decorative border frame\n";
     cout << "  -v,  --version        Print version and exit\n";
     cout << "  -h, --help            Display this help message\n\n";
-    cout << "Themes: classic, dark, sunset, ocean, retro, night, all\n\n";
+    cout << "Themes: classic, dark, sunset, ocean, retro, night, white, all\n\n";
     cout << "Examples:\n";
     cout << "  ./jokes_image -p 5                     - Save joke_5.jpg\n";
     cout << "  ./jokes_image -p 5 -o funny.jpg        - Save funny.jpg\n";
@@ -472,6 +492,9 @@ int main(int argc, char* argv[]) {
     string bgPath;
     string customSetup;
     string customPunchline;
+    string setupColorHex;
+    string punchlineColorHex;
+    string borderColorHex;
 
     try {
         for (int i = 1; i < argc; i++) {
@@ -523,6 +546,27 @@ int main(int argc, char* argv[]) {
                     cerr << "Error: --punchline requires text.\n";
                     return 1;
                 }
+            } else if (arg == "--setupcolor") {
+                if (i + 1 < argc) {
+                    setupColorHex = argv[++i];
+                } else {
+                    cerr << "Error: --setupcolor requires a hex color (e.g. #ff0000).\n";
+                    return 1;
+                }
+            } else if (arg == "--punchlinecolor") {
+                if (i + 1 < argc) {
+                    punchlineColorHex = argv[++i];
+                } else {
+                    cerr << "Error: --punchlinecolor requires a hex color (e.g. #ffffff).\n";
+                    return 1;
+                }
+            } else if (arg == "--bordercolor") {
+                if (i + 1 < argc) {
+                    borderColorHex = argv[++i];
+                } else {
+                    cerr << "Error: --bordercolor requires a hex color (e.g. #ffffff).\n";
+                    return 1;
+                }
             } else if (arg == "--roundedcorners" || arg == "-rc") {
                 roundedcorners = true;
             } else if (arg == "-bg" || arg == "--background") {
@@ -557,6 +601,44 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
+    // Parse and validate any color overrides
+    Color overrideSetup     = {0,0,0};
+    Color overridePunchline = {0,0,0};
+    Color overrideBorder    = {0,0,0};
+    bool hasSetupColor      = false;
+    bool hasPunchlineColor  = false;
+    bool hasBorderColor     = false;
+    if (!setupColorHex.empty()) {
+        if (!parseHexColor(setupColorHex, overrideSetup)) {
+            cerr << "Error: invalid hex color for --setupcolor: " << setupColorHex << "\n";
+            return 1;
+        }
+        hasSetupColor = true;
+    }
+    if (!punchlineColorHex.empty()) {
+        if (!parseHexColor(punchlineColorHex, overridePunchline)) {
+            cerr << "Error: invalid hex color for --punchlinecolor: " << punchlineColorHex << "\n";
+            return 1;
+        }
+        hasPunchlineColor = true;
+    }
+    if (!borderColorHex.empty()) {
+        if (!parseHexColor(borderColorHex, overrideBorder)) {
+            cerr << "Error: invalid hex color for --bordercolor: " << borderColorHex << "\n";
+            return 1;
+        }
+        hasBorderColor = true;
+    }
+
+    // Helper to apply color overrides to a theme copy
+    auto resolveTheme = [&](const Theme& base) {
+        Theme t = base;
+        if (hasSetupColor)     t.setup     = overrideSetup;
+        if (hasPunchlineColor) t.punchline = overridePunchline;
+        if (hasBorderColor)    t.border    = overrideBorder;
+        return t;
+    };
+
     bool usingCustomText = !customSetup.empty() || !customPunchline.empty();
 
     if (!usingCustomText && jokeNumber < 1) {
@@ -586,7 +668,7 @@ int main(int argc, char* argv[]) {
                 ? (usingCustomText ? "joke_custom_" + kv.first + ".jpg"
                                    : "joke_" + to_string(jokeNumber) + "_" + kv.first + ".jpg")
                 : outputFile;
-            ok &= jokeToJpeg(joke, jokeNumber, file, fontPath, kv.second, noborder, bgPath, nodim, roundedcorners, nofooter);
+            ok &= jokeToJpeg(joke, jokeNumber, file, fontPath, resolveTheme(kv.second), noborder, bgPath, nodim, roundedcorners, nofooter);
         }
         return ok ? 0 : 1;
     }
@@ -595,5 +677,5 @@ int main(int argc, char* argv[]) {
         outputFile = usingCustomText ? "joke_custom_" + themeName + ".jpg"
                                      : "joke_" + to_string(jokeNumber) + "_" + themeName + ".jpg";
 
-    return jokeToJpeg(joke, jokeNumber, outputFile, fontPath, THEMES.at(themeName), noborder, bgPath, nodim, roundedcorners, nofooter) ? 0 : 1;
+    return jokeToJpeg(joke, jokeNumber, outputFile, fontPath, resolveTheme(THEMES.at(themeName)), noborder, bgPath, nodim, roundedcorners, nofooter) ? 0 : 1;
 }

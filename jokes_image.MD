@@ -17,6 +17,8 @@ Generates a framed `.jpg` image of a joke from the jokes collection.
 ./jokes_image -p 5 --nofooter             # no footer label, border stays intact
 ./jokes_image -p 5 --noborder              # no border frame (or -nb)
 ./jokes_image --setup "Why?" --punchline "Because!"  # custom text, no -p needed
+./jokes_image -p 5 -t dark --setupcolor "#ffffff"     # white setup text
+./jokes_image -p 5 --setupcolor "#ff6600" --punchlinecolor "#ffffff"  # custom colors
 ./jokes_image --version                    # print version (or -v)
 ./jokes_image -h                            # help
 ```
@@ -34,6 +36,9 @@ Generates a framed `.jpg` image of a joke from the jokes collection.
 | `--nofooter` | Omit the footer label; border is drawn fully intact |
 | `--setup "text"` | Use custom setup text instead of a joke from the data |
 | `--punchline "text"` | Use custom punchline text instead of a joke from the data |
+| `--setupcolor "#rrggbb"` | Override the setup text color with a hex value (quote to prevent shell stripping `#`) |
+| `--punchlinecolor "#rrggbb"` | Override the punchline text color with a hex value (quote to prevent shell stripping `#`) |
+| `--bordercolor "#rrggbb"` | Override the border color with a hex value (quote to prevent shell stripping `#`) |
 | `-rc, --roundedcorners` | Use rounded corners on the border frame |
 | `-nb, --noborder` | Omit the decorative border frame |
 | `-v, --version` | Print version and exit |
@@ -49,6 +54,7 @@ Generates a framed `.jpg` image of a joke from the jokes collection.
 | `ocean` | Pale blue | Deep blue border, ocean-blue text |
 | `retro` | Yellow | Brown border, amber text |
 | `night` | Deep navy | Purple border, lavender setup, teal punchline |
+| `white` | Near-black | Blue border, white setup, white punchline |
 
 Use `-t all` to generate one file per theme in a single run (e.g. `joke_5_classic.jpg`, `joke_5_dark.jpg`, …). The `-o` flag is ignored when using `all`.
 
