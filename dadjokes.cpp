@@ -40,6 +40,8 @@
 #include "jokes_data.h"
 using namespace std;
 
+const string VERSION = "2.0";
+
 void outputJoke(const Joke& joke, int jokeNumber, bool separateLines = false, bool colored = false, bool showNumber = false, bool showAll = false) {
     // ANSI color codes
     string cyanColor = "\033[36m";
@@ -74,6 +76,7 @@ void displayHelp() {
     cout << "  -nc, --nocolor        Plain output (color is on by default)\n";
     cout << "  -sn, --shownumber     Display the number of the joke\n";
     cout << "  -p, --picknumber xxx  Display joke by number, supply number after\n";
+    cout << "  -v, --version         Display the version number\n";
     cout << "  -h, --help            Display this help message\n";
     cout << "Examples:\n";
     cout << "  ./dadjokes                       - Display one random joke\n";
@@ -108,6 +111,9 @@ int main(int argc, char* argv[]) {
             } else if (string(argv[i]) == "-p" || string(argv[i]) == "--pick") {
                 pickJokeByNumber = true;
                 jokeNumber = stoi(argv[i+1]);
+            } else if (string(argv[i]) == "-v" || string(argv[i]) == "--version") {
+                cout << "Dad Jokes version " << VERSION << "\n";
+                return 0;
             } else if (string(argv[i]) == "-h" || string(argv[i]) == "--help") {
                 displayHelp();
                 return 0;
