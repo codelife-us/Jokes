@@ -409,5 +409,7 @@ const vector<Joke> jokes = {
     {"work", "The most successful investor was Noah.", "He floated stock while everything around him went into liquidation."},
     {"work", "A candidate overflows a cup of water during the interview. Interviewer: \"Nervous?\"", "Candidate: \"No, I always give 110%.\""},
     {"work", "I knew my coworker was replaced by a bot when they replied to a 4:45 PM meeting request with \"Sure, I'd love to!\"", "No human is that enthusiastic."},
-    {"work", "Company Policy: We don't have a dress code, but please remember this is an office, not a pajama party.", "Unless it's Pajama Day. HR will notify you."}
+    {"work", "Company Policy: We don't have a dress code, but please remember this is an office, not a pajama party.", "Unless it's Pajama Day. HR will notify you."},
+    {"dad", "I got fired from my job at the funeral home because I kept asking my customers whether they would prefer \"Smoking\" or \"Non-smoking\".", "Apparently the correct terms are \"Cremation\" and \"Burial\"."},
+    {"dad", "I got fired from my funeral home job.", "I miscalculated casket size to body size one too many times. I mean, I’m no mathamortician."}
 };
