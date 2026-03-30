@@ -120,16 +120,61 @@ struct Image {
     }
 
     void drawRect(int x0, int y0, int x1, int y1,
-                  uint8_t r, uint8_t g, uint8_t b, int thickness = 4) {
+                  uint8_t r, uint8_t g, uint8_t b, int thickness = 4,
+                  int gapX0 = -1, int gapX1 = -1) {
         for (int t = 0; t < thickness; t++) {
             for (int x = x0 + t; x <= x1 - t; x++) {
                 setPixel(x, y0 + t, r, g, b);
-                setPixel(x, y1 - t, r, g, b);
+                if (gapX0 < 0 || x < gapX0 || x > gapX1)
+                    setPixel(x, y1 - t, r, g, b);
             }
             for (int y = y0 + t; y <= y1 - t; y++) {
                 setPixel(x0 + t, y, r, g, b);
                 setPixel(x1 - t, y, r, g, b);
             }
+        }
+    }
+
+    void drawRoundedRect(int x0, int y0, int x1, int y1,
+                         uint8_t r, uint8_t g, uint8_t b, int thickness = 4, int radius = 30,
+                         int gapX0 = -1, int gapX1 = -1) {
+        for (int t = 0; t < thickness; t++) {
+            int ax0 = x0 + t, ay0 = y0 + t;
+            int ax1 = x1 - t, ay1 = y1 - t;
+            int rad = radius - t;
+            if (rad < 1) rad = 1;
+
+            // Straight edges (skip the corner arc regions)
+            for (int x = ax0 + rad; x <= ax1 - rad; x++) {
+                setPixel(x, ay0, r, g, b);
+                if (gapX0 < 0 || x < gapX0 || x > gapX1)
+                    setPixel(x, ay1, r, g, b);
+            }
+            for (int y = ay0 + rad; y <= ay1 - rad; y++) {
+                setPixel(ax0, y, r, g, b);
+                setPixel(ax1, y, r, g, b);
+            }
+
+            // Quarter-circle arcs at each corner via midpoint circle algorithm
+            auto arc = [&](int ccx, int ccy, int quad) {
+                int cx = 0, cy = rad, d = 1 - rad;
+                while (cx <= cy) {
+                    switch (quad) {
+                        case 0: setPixel(ccx-cy, ccy-cx,r,g,b); setPixel(ccx-cx, ccy-cy,r,g,b); break; // top-left
+                        case 1: setPixel(ccx+cy, ccy-cx,r,g,b); setPixel(ccx+cx, ccy-cy,r,g,b); break; // top-right
+                        case 2: setPixel(ccx+cy, ccy+cx,r,g,b); setPixel(ccx+cx, ccy+cy,r,g,b); break; // bottom-right
+                        case 3: setPixel(ccx-cy, ccy+cx,r,g,b); setPixel(ccx-cx, ccy+cy,r,g,b); break; // bottom-left
+                    }
+                    if (d < 0) d += 2*cx + 3;
+                    else { d += 2*(cx-cy) + 5; cy--; }
+                    cx++;
+                }
+            };
+
+            arc(ax0+rad, ay0+rad, 0); // top-left
+            arc(ax1-rad, ay0+rad, 1); // top-right
+            arc(ax1-rad, ay1-rad, 2); // bottom-right
+            arc(ax0+rad, ay1-rad, 3); // bottom-left
         }
     }
 
@@ -281,11 +326,13 @@ struct Font {
 
 bool jokeToJpeg(const Joke& joke, int jokeNumber, const string& filename,
                 const string& fontPath, const Theme& theme, bool noborder = false,
-                const string& bgPath = "", bool nodim = false) {
-    const int W      = 800, H = 500;
-    const int MARGIN = 50;
-    const int FRAME  = 16;
-    const int LINE_H = 54;
+                const string& bgPath = "", bool nodim = false, bool roundedcorners = false,
+                bool nofooter = false) {
+    const int W         = 800, H = 500;
+    const int MARGIN    = 50;
+    const int FRAME     = 8;
+    const int THICKNESS = 5;
+    const int LINE_H    = 54;
 
     Image img(W, H, theme.bg.r, theme.bg.g, theme.bg.b);
 
@@ -300,10 +347,29 @@ bool jokeToJpeg(const Joke& joke, int jokeNumber, const string& filename,
         return false;
     }
 
-    // Outer frame
-    if (!noborder)
-        img.drawRect(FRAME, FRAME, W - FRAME, H - FRAME,
-                     theme.border.r, theme.border.g, theme.border.b, 5);
+    // Measure label for border gap (skipped if nofooter)
+    Font smallFont;
+    string label = "Code Life Jokes #" + to_string(jokeNumber) + "  [" + joke.type + "]";
+    int gapX0 = -1, gapX1 = -1;
+    int labelY = H - FRAME - THICKNESS / 2 + 6;
+    if (!nofooter && smallFont.load(fontPath, 18)) {
+        const int GAP_PAD = 12;
+        int lw = smallFont.textWidth(label);
+        gapX0 = (W - lw) / 2 - GAP_PAD;
+        gapX1 = (W + lw) / 2 + GAP_PAD;
+    }
+
+    // Outer frame (gap only if footer is shown)
+    if (!noborder) {
+        if (roundedcorners)
+            img.drawRoundedRect(FRAME, FRAME, W - FRAME, H - FRAME,
+                                theme.border.r, theme.border.g, theme.border.b, THICKNESS,
+                                30, gapX0, gapX1);
+        else
+            img.drawRect(FRAME, FRAME, W - FRAME, H - FRAME,
+                         theme.border.r, theme.border.g, theme.border.b, THICKNESS,
+                         gapX0, gapX1);
+    }
 
     int textMaxWidth = W - MARGIN * 2;
     int y = MARGIN + 28;
@@ -327,11 +393,8 @@ bool jokeToJpeg(const Joke& joke, int jokeNumber, const string& filename,
         y += LINE_H;
     }
 
-    // Label just above the bottom border (small, centered)
-    Font smallFont;
-    if (smallFont.load(fontPath, 18)) {
-        string label = "Code Life Jokes #" + to_string(jokeNumber) + "  [" + joke.type + "]";
-        int labelY = H - FRAME - 10; // baseline sits 10px above the inner edge of the frame
+    // Label centered in the gap on the bottom border
+    if (!nofooter && smallFont.load(fontPath, 18)) {
         smallFont.drawTextCentered(img, label, W, labelY, theme.label.r, theme.label.g, theme.label.b);
     }
 
@@ -373,6 +436,10 @@ void displayHelp() {
     cout << "  -t, --theme <name>    Color theme (default: classic)\n";
     cout << "  -bg, --background <file>  Use a .jpg/.png image as the background layer\n";
     cout << "  --nodim               Do not dim the background image (default: dims 45%)\n";
+    cout << "  --nofooter            Omit the 'Code Life Jokes' label and leave the border intact\n";
+    cout << "  --setup \"text\"        Use custom setup text instead of a joke from the data\n";
+    cout << "  --punchline \"text\"    Use custom punchline text instead of a joke from the data\n";
+    cout << "  -rc, --roundedcorners Use rounded corners on the border frame\n";
     cout << "  -nb, --noborder       Omit the decorative border frame\n";
     cout << "  -v,  --version        Print version and exit\n";
     cout << "  -h, --help            Display this help message\n\n";
@@ -385,6 +452,8 @@ void displayHelp() {
     cout << "  ./jokes_image -p 5 -f /path/to/font.ttf\n";
     cout << "  ./jokes_image -p 5 -bg photo.jpg          - Use photo.jpg as background\n";
     cout << "  ./jokes_image -p 5 -bg photo.jpg -nb      - Background with no border\n";
+    cout << "  ./jokes_image -p 5 --nofooter             - No footer label\n";
+    cout << "  ./jokes_image --setup \"Why?\" --punchline \"Because!\"  - Custom text\n";
 }
 
 // ----------------------------------------------------------------------------
@@ -396,9 +465,13 @@ int main(int argc, char* argv[]) {
     string outputFile;
     string fontPath    = defaultFontPath();
     string themeName   = "classic";
-    bool   noborder    = false;
-    bool   nodim       = false;
+    bool   noborder       = false;
+    bool   nodim          = false;
+    bool   roundedcorners = false;
+    bool   nofooter       = false;
     string bgPath;
+    string customSetup;
+    string customPunchline;
 
     try {
         for (int i = 1; i < argc; i++) {
@@ -434,6 +507,24 @@ int main(int argc, char* argv[]) {
                 }
             } else if (arg == "--nodim") {
                 nodim = true;
+            } else if (arg == "--nofooter") {
+                nofooter = true;
+            } else if (arg == "--setup") {
+                if (i + 1 < argc) {
+                    customSetup = argv[++i];
+                } else {
+                    cerr << "Error: --setup requires text.\n";
+                    return 1;
+                }
+            } else if (arg == "--punchline") {
+                if (i + 1 < argc) {
+                    customPunchline = argv[++i];
+                } else {
+                    cerr << "Error: --punchline requires text.\n";
+                    return 1;
+                }
+            } else if (arg == "--roundedcorners" || arg == "-rc") {
+                roundedcorners = true;
             } else if (arg == "-bg" || arg == "--background") {
                 if (i + 1 < argc) {
                     bgPath = argv[++i];
@@ -466,32 +557,43 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    if (jokeNumber < 1) {
-        cerr << "Error: joke number required. Use -p <number>.\n\n";
+    bool usingCustomText = !customSetup.empty() || !customPunchline.empty();
+
+    if (!usingCustomText && jokeNumber < 1) {
+        cerr << "Error: joke number required. Use -p <number>, or supply --setup/--punchline.\n\n";
         displayHelp();
         return 1;
     }
 
-    if (jokeNumber > (int)jokes.size()) {
-        cerr << "Error: joke #" << jokeNumber << " does not exist. (Range: 1-" << jokes.size() << ")\n";
-        return 1;
+    Joke joke;
+    if (usingCustomText) {
+        joke.setup     = customSetup;
+        joke.punchline = customPunchline;
+        joke.type      = "custom";
+        if (jokeNumber < 1) jokeNumber = 0; // no number to display in footer
+    } else {
+        if (jokeNumber > (int)jokes.size()) {
+            cerr << "Error: joke #" << jokeNumber << " does not exist. (Range: 1-" << jokes.size() << ")\n";
+            return 1;
+        }
+        joke = jokes[jokeNumber - 1];
     }
-
-    const Joke& joke = jokes[jokeNumber - 1];
 
     if (themeName == "all") {
         bool ok = true;
         for (auto& kv : THEMES) {
             string file = outputFile.empty()
-                ? "joke_" + to_string(jokeNumber) + "_" + kv.first + ".jpg"
+                ? (usingCustomText ? "joke_custom_" + kv.first + ".jpg"
+                                   : "joke_" + to_string(jokeNumber) + "_" + kv.first + ".jpg")
                 : outputFile;
-            ok &= jokeToJpeg(joke, jokeNumber, file, fontPath, kv.second, noborder, bgPath, nodim);
+            ok &= jokeToJpeg(joke, jokeNumber, file, fontPath, kv.second, noborder, bgPath, nodim, roundedcorners, nofooter);
         }
         return ok ? 0 : 1;
     }
 
     if (outputFile.empty())
-        outputFile = "joke_" + to_string(jokeNumber) + "_" + themeName + ".jpg";
+        outputFile = usingCustomText ? "joke_custom_" + themeName + ".jpg"
+                                     : "joke_" + to_string(jokeNumber) + "_" + themeName + ".jpg";
 
-    return jokeToJpeg(joke, jokeNumber, outputFile, fontPath, THEMES.at(themeName), noborder, bgPath, nodim) ? 0 : 1;
+    return jokeToJpeg(joke, jokeNumber, outputFile, fontPath, THEMES.at(themeName), noborder, bgPath, nodim, roundedcorners, nofooter) ? 0 : 1;
 }
