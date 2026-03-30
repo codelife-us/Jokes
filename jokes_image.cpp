@@ -23,10 +23,10 @@
 // Jokes Image
 //     by Code Life
 //     generates a .jpg image of a joke
-//     version 1.0 - 3/23/2026
+//     version 1.1 - 3/30/2026
 // Description: Outputs a joke as a framed .jpg image file using stb_truetype + stb_image_write.
 //              Requires: stb_truetype.h, stb_image_write.h (drop in project directory)
-//              Usage: ./jokes_image -p <number> [-o <filename>] [-f <fontpath>]
+//              Usage: ./jokes_image -p <number> [-o <filename>] [-f <fontpath>] [-t <theme>]
 
 #define STB_TRUETYPE_IMPLEMENTATION
 #define STB_IMAGE_WRITE_IMPLEMENTATION
@@ -36,11 +36,43 @@
 #include <string>
 #include <iostream>
 #include <fstream>
+#include <map>
 #include <vector>
 #include <cstdint>
 #include "jokes_data.h"
 
 using namespace std;
+
+// ----------------------------------------------------------------------------
+// Theme
+// ----------------------------------------------------------------------------
+
+struct Color { uint8_t r, g, b; };
+
+struct Theme {
+    Color bg;        // background fill
+    Color border;    // outer frame
+    Color setup;     // setup text
+    Color punchline; // punchline text
+    Color label;     // footer label
+};
+
+static const map<string, Theme> THEMES = {
+    // name        bg               border           setup            punchline        label
+    { "classic", { {255,255,255}, {50, 100, 200}, {0,  140, 180}, {30, 160,  60}, {140,140,140} } },
+    { "dark",    { {30,  30,  40}, {80, 160, 240}, {80, 200, 240}, {80, 210, 120}, {170,170,170} } },
+    { "sunset",  { {255,240,220}, {200,  80,  40}, {180,  60,  20}, {210, 120,  10}, {160,100, 60} } },
+    { "ocean",   { {220,240,255}, {20,  80, 160}, {10, 100, 180}, {20, 140, 160}, {100,140,170} } },
+    { "retro",   { {255,255,200}, {160,  80,   0}, {120,  60,   0}, {180, 100,   0}, {140,120, 60} } },
+    { "night",   { {15,  15,  30}, {100,  60, 200}, {160, 100, 255}, {100, 220, 180}, {130,120,160} } },
+};
+
+static void listThemes() {
+    cout << "Available themes: ";
+    bool first = true;
+    for (auto& kv : THEMES) { if (!first) cout << ", "; cout << kv.first; first = false; }
+    cout << "\n";
+}
 
 // ----------------------------------------------------------------------------
 // Image
@@ -154,7 +186,7 @@ struct Font {
     }
 
     void drawText(Image& img, const string& text, int x, int y,
-                  uint8_t r, uint8_t g, uint8_t b) const {
+                  uint8_t r, uint8_t g, uint8_t b, bool bold = false) const {
         int cursor = x;
         int prev = 0;
         for (int i = 0; i < (int)text.size(); ) {
@@ -173,10 +205,18 @@ struct Font {
                 vector<uint8_t> bitmap(gw * gh);
                 stbtt_MakeCodepointBitmap(&info, bitmap.data(), gw, gh, gw, scale, scale, cp);
                 img.blendGlyph(bitmap.data(), gw, gh, cursor + x0, y + y0, r, g, b);
+                if (bold)
+                    img.blendGlyph(bitmap.data(), gw, gh, cursor + x0 + 1, y + y0, r, g, b);
             }
             cursor += (int)(advance * scale);
             prev = cp;
         }
+    }
+
+    void drawTextCentered(Image& img, const string& text, int imgWidth, int y,
+                          uint8_t r, uint8_t g, uint8_t b, bool bold = false) const {
+        int x = (imgWidth - textWidth(text)) / 2;
+        drawText(img, text, x, y, r, g, b, bold);
     }
 
     // Word-wrap text into lines that fit within maxWidth
@@ -207,51 +247,52 @@ struct Font {
 // ----------------------------------------------------------------------------
 
 bool jokeToJpeg(const Joke& joke, int jokeNumber, const string& filename,
-                const string& fontPath) {
-    const int W = 800, H = 420;
+                const string& fontPath, const Theme& theme) {
+    const int W      = 800, H = 500;
     const int MARGIN = 50;
     const int FRAME  = 16;
-    const int LINE_H = 44;
+    const int LINE_H = 54;
 
-    Image img(W, H);
+    Image img(W, H, theme.bg.r, theme.bg.g, theme.bg.b);
 
     Font font;
-    if (!font.load(fontPath, 28)) {
+    if (!font.load(fontPath, 36)) {
         cerr << "Error: could not load font: " << fontPath << "\n";
         return false;
     }
 
     // Outer frame
-    img.drawRect(FRAME, FRAME, W - FRAME, H - FRAME, 50, 100, 200, 5);
+    img.drawRect(FRAME, FRAME, W - FRAME, H - FRAME,
+                 theme.border.r, theme.border.g, theme.border.b, 5);
 
     int textMaxWidth = W - MARGIN * 2;
-    int y = MARGIN + 20;
+    int y = MARGIN + 28;
 
-    // Setup text (cyan)
+    // Setup text — bold, centered
     auto setupLines = font.wrapText(
         joke.type == "knock-knock"
             ? "Knock knock! Who's there? " + joke.setup + "  " + joke.setup + " who?"
             : joke.setup,
         textMaxWidth);
     for (auto& line : setupLines) {
-        font.drawText(img, line, MARGIN, y, 0, 140, 180);
+        font.drawTextCentered(img, line, W, y, theme.setup.r, theme.setup.g, theme.setup.b, true);
         y += LINE_H;
     }
 
-    y += 16; // gap
+    y += 20; // gap
 
-    // Punchline text (green)
+    // Punchline text — bold, centered
     for (auto& line : font.wrapText(joke.punchline, textMaxWidth)) {
-        font.drawText(img, line, MARGIN, y, 30, 160, 60);
+        font.drawTextCentered(img, line, W, y, theme.punchline.r, theme.punchline.g, theme.punchline.b, true);
         y += LINE_H;
     }
 
-    // Label just above the bottom border (small, grey)
+    // Label just above the bottom border (small, centered)
     Font smallFont;
     if (smallFont.load(fontPath, 18)) {
         string label = "Code Life Jokes #" + to_string(jokeNumber) + "  [" + joke.type + "]";
         int labelY = H - FRAME - 10; // baseline sits 10px above the inner edge of the frame
-        smallFont.drawText(img, label, MARGIN, labelY, 140, 140, 140);
+        smallFont.drawTextCentered(img, label, W, labelY, theme.label.r, theme.label.g, theme.label.b);
     }
 
     if (!img.writeJpeg(filename)) {
@@ -289,10 +330,13 @@ void displayHelp() {
     cout << "  -p, --pick <number>   Joke number to render (required)\n";
     cout << "  -o, --output <file>   Output filename (default: joke_<number>.jpg)\n";
     cout << "  -f, --font <path>     Path to a .ttf or .ttc font file\n";
+    cout << "  -t, --theme <name>    Color theme (default: classic)\n";
     cout << "  -h, --help            Display this help message\n\n";
+    cout << "Themes: classic, dark, sunset, ocean, retro, night, all\n\n";
     cout << "Examples:\n";
     cout << "  ./jokes_image -p 5                     - Save joke_5.jpg\n";
     cout << "  ./jokes_image -p 5 -o funny.jpg        - Save funny.jpg\n";
+    cout << "  ./jokes_image -p 5 -t dark             - Dark theme\n";
     cout << "  ./jokes_image -p 5 -f /path/to/font.ttf\n";
 }
 
@@ -304,6 +348,7 @@ int main(int argc, char* argv[]) {
     int    jokeNumber  = -1;
     string outputFile;
     string fontPath    = defaultFontPath();
+    string themeName   = "classic";
 
     try {
         for (int i = 1; i < argc; i++) {
@@ -329,6 +374,14 @@ int main(int argc, char* argv[]) {
                     cerr << "Error: --font requires a path.\n";
                     return 1;
                 }
+            } else if (arg == "-t" || arg == "--theme") {
+                if (i + 1 < argc) {
+                    themeName = argv[++i];
+                } else {
+                    cerr << "Error: --theme requires a name.\n";
+                    listThemes();
+                    return 1;
+                }
             } else if (arg == "-h" || arg == "--help") {
                 displayHelp();
                 return 0;
@@ -343,6 +396,12 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
+    if (themeName != "all" && THEMES.find(themeName) == THEMES.end()) {
+        cerr << "Error: unknown theme '" << themeName << "'.\n";
+        listThemes();
+        return 1;
+    }
+
     if (jokeNumber < 1) {
         cerr << "Error: joke number required. Use -p <number>.\n\n";
         displayHelp();
@@ -354,8 +413,21 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    if (outputFile.empty())
-        outputFile = "joke_" + to_string(jokeNumber) + ".jpg";
+    const Joke& joke = jokes[jokeNumber - 1];
 
-    return jokeToJpeg(jokes[jokeNumber - 1], jokeNumber, outputFile, fontPath) ? 0 : 1;
+    if (themeName == "all") {
+        bool ok = true;
+        for (auto& kv : THEMES) {
+            string file = outputFile.empty()
+                ? "joke_" + to_string(jokeNumber) + "_" + kv.first + ".jpg"
+                : outputFile;
+            ok &= jokeToJpeg(joke, jokeNumber, file, fontPath, kv.second);
+        }
+        return ok ? 0 : 1;
+    }
+
+    if (outputFile.empty())
+        outputFile = "joke_" + to_string(jokeNumber) + "_" + themeName + ".jpg";
+
+    return jokeToJpeg(joke, jokeNumber, outputFile, fontPath, THEMES.at(themeName)) ? 0 : 1;
 }
