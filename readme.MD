@@ -31,7 +31,7 @@ g++ jokes.cpp -o jokes
 - `-h, --help` - Display this help message
 - *(none)* - Display one random joke
 - `-a, --all` - Display all jokes shuffled instead of just one
-- `-t, --type <type>` - Filter jokes by type (default: all); valid types: `all`, `dad`, `tech`, `pun`, `knock-knock`, `math`, `work`
+- `-t, --type <type>` - Filter jokes by type (default: all); valid types: `all`, `dad`, `tech`, `pun`, `knock-knock`, `math`, `work`, `aging`
 - `-1, --oneline` - Display joke setup and punchline on one line with a colon separator
 - `-nc, --nocolor` - Disable colored output (color is on by default)
 - `-p, --pick <number>` - Display the joke matching the given number

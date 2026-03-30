@@ -79,7 +79,7 @@ void displayHelp() {
     cout << "  -nc, --nocolor        Disable colored output (color is on by default)\n";
     cout << "  -sn, --shownumber     Display the number of the joke\n";
     cout << "  -st, --showtype       Display the type of the joke\n";
-    cout << "  -t, --type xxx        Filter by joke type: dad, knock-knock, pun, math, tech, work, all\n";
+    cout << "  -t, --type xxx        Filter by joke type: dad, knock-knock, pun, math, tech, work, aging, all\n";
     cout << "  -p, --picknumber xxx  Display joke by number, supply number after\n";
     cout << "  -v, --version         Display the version number\n";
     cout << "  -h, --help            Display this help message\n";
@@ -123,8 +123,8 @@ int main(int argc, char* argv[]) {
                 if (i + 1 < argc) {
                     filterType = true;
                     type = argv[++i]; // Skip to next arg
-                    if (type != "dad" && type != "knock-knock" && type != "pun" && type != "math" && type != "tech" && type != "work" && type != "all") {
-                        cerr << "Invalid joke type specified. Valid types are: dad, knock-knock, tech, pun, math, work, all.\n";
+                    if (type != "dad" && type != "knock-knock" && type != "pun" && type != "math" && type != "tech" && type != "work" && type != "aging" && type != "all") {
+                        cerr << "Invalid joke type specified. Valid types are: dad, knock-knock, tech, pun, math, work, aging, all.\n";
                         return 1;
                     }
                 } else {
