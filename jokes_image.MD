@@ -12,6 +12,7 @@ Generates a framed `.jpg` image of a joke from the jokes collection.
 ./jokes_image -p 5 -t all                  # save one image per theme
 ./jokes_image -p 5 -bg photo.jpg           # use photo.jpg as background
 ./jokes_image -p 5 -bg photo.jpg -nb      # background with no border
+./jokes_image -p 5 -bg photo.jpg --nodim  # background without dimming
 ./jokes_image -p 5 --noborder              # no border frame (or -nb)
 ./jokes_image --version                    # print version (or -v)
 ./jokes_image -h                            # help
@@ -26,6 +27,7 @@ Generates a framed `.jpg` image of a joke from the jokes collection.
 | `-f, --font <path>` | Path to a `.ttf` or `.ttc` font file |
 | `-t, --theme <name>` | Color theme (default: `classic`); use `all` to output every theme |
 | `-bg, --background <file>` | Use a `.jpg` or `.png` image as the background layer |
+| `--nodim` | Skip dimming the background image (default dims by 45%) |
 | `-nb, --noborder` | Omit the decorative border frame |
 | `-v, --version` | Print version and exit |
 | `-h, --help` | Display help message |
@@ -59,7 +61,7 @@ g++ -std=c++17 -O2 jokes_image.cpp -o jokes_image.exe
 
 - 800x500 pixel JPEG, quality 90
 - Themed background and border (see Themes above), or a custom background image via `-bg`
-- When a background image is used, it is scaled to fill 800x500 and dimmed (45%) so text stays legible
+- When a background image is used, it is scaled to fill 800x500 and dimmed 45% by default; use `--nodim` to skip dimming
 - Text is larger (36px), bold, and horizontally centered
 - Small label centered just above the bottom border: `Code Life Jokes #N  [type]`
 - Setup text color and punchline color are theme-defined

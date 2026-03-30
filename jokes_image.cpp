@@ -281,7 +281,7 @@ struct Font {
 
 bool jokeToJpeg(const Joke& joke, int jokeNumber, const string& filename,
                 const string& fontPath, const Theme& theme, bool noborder = false,
-                const string& bgPath = "") {
+                const string& bgPath = "", bool nodim = false) {
     const int W      = 800, H = 500;
     const int MARGIN = 50;
     const int FRAME  = 16;
@@ -291,7 +291,7 @@ bool jokeToJpeg(const Joke& joke, int jokeNumber, const string& filename,
 
     if (!bgPath.empty()) {
         if (!img.loadBackground(bgPath)) return false;
-        img.applyDimOverlay();
+        if (!nodim) img.applyDimOverlay();
     }
 
     Font font;
@@ -372,6 +372,7 @@ void displayHelp() {
     cout << "  -f, --font <path>     Path to a .ttf or .ttc font file\n";
     cout << "  -t, --theme <name>    Color theme (default: classic)\n";
     cout << "  -bg, --background <file>  Use a .jpg/.png image as the background layer\n";
+    cout << "  --nodim               Do not dim the background image (default: dims 45%)\n";
     cout << "  -nb, --noborder       Omit the decorative border frame\n";
     cout << "  -v,  --version        Print version and exit\n";
     cout << "  -h, --help            Display this help message\n\n";
@@ -396,6 +397,7 @@ int main(int argc, char* argv[]) {
     string fontPath    = defaultFontPath();
     string themeName   = "classic";
     bool   noborder    = false;
+    bool   nodim       = false;
     string bgPath;
 
     try {
@@ -430,6 +432,8 @@ int main(int argc, char* argv[]) {
                     listThemes();
                     return 1;
                 }
+            } else if (arg == "--nodim") {
+                nodim = true;
             } else if (arg == "-bg" || arg == "--background") {
                 if (i + 1 < argc) {
                     bgPath = argv[++i];
@@ -481,7 +485,7 @@ int main(int argc, char* argv[]) {
             string file = outputFile.empty()
                 ? "joke_" + to_string(jokeNumber) + "_" + kv.first + ".jpg"
                 : outputFile;
-            ok &= jokeToJpeg(joke, jokeNumber, file, fontPath, kv.second, noborder, bgPath);
+            ok &= jokeToJpeg(joke, jokeNumber, file, fontPath, kv.second, noborder, bgPath, nodim);
         }
         return ok ? 0 : 1;
     }
@@ -489,5 +493,5 @@ int main(int argc, char* argv[]) {
     if (outputFile.empty())
         outputFile = "joke_" + to_string(jokeNumber) + "_" + themeName + ".jpg";
 
-    return jokeToJpeg(joke, jokeNumber, outputFile, fontPath, THEMES.at(themeName), noborder, bgPath) ? 0 : 1;
+    return jokeToJpeg(joke, jokeNumber, outputFile, fontPath, THEMES.at(themeName), noborder, bgPath, nodim) ? 0 : 1;
 }
