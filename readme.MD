@@ -31,14 +31,13 @@ g++ jokes.cpp -o jokes
 - `-h, --help` - Display this help message
 - *(none)* - Display one random joke
 - `-a, --all` - Display all jokes shuffled instead of just one
-- `-t, --type` - Default is no filter (all), but if specified, it will select from that type of joke
--                 types that can be used are all,dad,tech,pun,knock-knock,math
-- `-1, --oneline` - Display joke setup on one line and punchline on one line with colon separator
-- `-nc, --nocolor`      Disable colored output (color is on by default)
-- `-p, --pick xxx`      Display a joke that is picked by the number following
-- `-sn, --shownumber`   Show the joke number in the output with brackets around it
-- `-st, --showtype`     Show the type in the output with brackets around it
-- `-v, --version`       Display the version number
+- `-t, --type <type>` - Filter jokes by type (default: all); valid types: `all`, `dad`, `tech`, `pun`, `knock-knock`, `math`, `work`
+- `-1, --oneline` - Display joke setup and punchline on one line with a colon separator
+- `-nc, --nocolor` - Disable colored output (color is on by default)
+- `-p, --pick <number>` - Display the joke matching the given number
+- `-sn, --shownumber` - Show the joke number in the output with brackets around it
+- `-st, --showtype` - Show the joke type in the output with brackets around it
+- `-v, --version` - Display the version number
 
 ### Examples
 
