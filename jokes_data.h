@@ -355,5 +355,19 @@ const vector<Joke> jokes = {
     {"dad", "Why did the banana go to the doctor?", "It was not peeling well."},
     {"dad", "I used to run a dating service for chickens.", "But I was struggling to make hens meet."},
     {"dad", "I’m not a fan of spring cleaning.", "To be honest, I’m not into summer, fall, or winter cleaning either."},
-    {"dad", "Where do lizards go after their tail falls off?", "The retail store."}
+    {"dad", "Where do lizards go after their tail falls off?", "The retail store."},
+    {"dad", "Our local bridge was closed today.", "I still can't get over it."},
+    {"dad", "The other day I held the door open for a clown.", "I thought it was a nice jester."},
+    {"dad", "Why do cows have hooves instead of feet?", "Because they lactose."},
+    {"dad", "One time, I tripped walking through Paris.", "Eiffel over."},
+    {"dad", "I always keep my guitar in my car now...", "It's good for traffice jams."},
+    {"dad", "I went on a ski trip.", "It started off fine, but went downhill fast."},
+    {"dad", "If you think swimming with dolphins is expensive, you should try swimming with sharks.", "Cost me an arm and a leg"},
+    {"dad", "A sweater I bought was picking up static electricity.", "They gave me another one free of charge."},
+    {"dad", "I can't remember how to write 1, 1000, 51, 6, and 500 in Roman numerals.", "I M LIVID"},
+    {"dad", "I told the nurse I was bitten by a wolf. \"Where?\" she asked.", "No. Regular"},
+    {"dad", "What's the best way to carve wood?", "Whittle by whittle."},
+    {"dad", "My father said, \"As one door closes, another opens.\"", "Beautiful man, terrible cabinet maker."},
+    {"dad", "Chinese takeout: $30.", "Getting home and finding out part of your order is missing: riceless."},
+    {"dad", "I renamed by toilet Jim instead of John.", "People are really impressed when I tell them I go to the Jim every morning."}
 };

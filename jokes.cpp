@@ -36,6 +36,8 @@
 
 using namespace std;
 
+const string VERSION = "2.0";
+
 void outputJoke(const Joke& joke, int jokeNumber, bool separateLines = false, bool colored = false, bool showNumber = false, bool showType = false) {
     // ANSI color codes
     string cyanColor = "\033[36m";
@@ -78,8 +80,9 @@ void displayHelp() {
     cout << "  -sn, --shownumber     Display the number of the joke\n";
     cout << "  -st, --showtype       Display the type of the joke\n";
     cout << "  -p, --picknumber xxx  Display joke by number, supply number after\n";
+    cout << "  -v, --version         Display the version number\n";
     cout << "  -h, --help            Display this help message\n";
-    cout << "Examples:\n";
+    cout << "\nExamples:\n";
     cout << "  ./jokes                       - Display one random joke\n";
     cout << "  ./jokes -a                    - Display all jokes shuffled\n";
     cout << "  ./jokes --nocolor             - Display one random joke without color\n";
@@ -138,6 +141,9 @@ int main(int argc, char* argv[]) {
                     cerr << "Error: --pick option requires a number.\n";
                     return 1;
                 }
+            } else if (arg == "-v" || arg == "--version") {
+                cout << "Jokes version " << VERSION << "\n";
+                return 0;
             } else if (arg == "-h" || arg == "--help") {
                 displayHelp();
                 return 0;
