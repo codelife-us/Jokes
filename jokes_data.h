@@ -472,5 +472,6 @@ const vector<Joke> jokes = {
     {"dad", "I have a fear of speed bumps.", "But I'm slowly getting over it."},
     {"dad", "How did the skeleton know that April showers were on the way?", "He could feel it in his bones."},
     {"dad", "Which country's capital is fastest growing?", "Ireland. Every year it's Dublin."},
-    {"dad", "My wife asked for something with diamonds in it for her birthday.", "So I got her a deck of cards."}
+    {"dad", "My wife asked for something with diamonds in it for her birthday.", "So I got her a deck of cards."},
+    {"dad", "What do you call a well-dressed lion in the spring?", "A dandy lion."}
 }; 
