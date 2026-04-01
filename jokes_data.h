@@ -416,6 +416,7 @@ const vector<Joke> jokes = {
     {"dad", "I lost my job at the pet store.", "A woman came in to buy a spider and I told her she could get one cheaper on the web."},
     {"aging", "My husband cooks for me like I'm a goddess.", "By placing burnt offerings before me."},
     {"aging", "Bickering with your spouse is like trying to read the Terms of Use for a new service.", "In the end, you just give up and click \"I agree.\""},
+    {"aging", "I'm not afraid of aging.", "I'm just afraid of stairs, ladders, tiny print, and chairs that sit too low to the ground."},
     {"aging", "What's the secret to having a smoking hot body in old age?", "Cremation."},
     {"aging", "What is a prize old people can win for aging?", "Atrophy."},
     {"aging", "What's the best part of old age?", "That it doesn't last very long."},
@@ -435,9 +436,9 @@ const vector<Joke> jokes = {
     {"aging", "Old age makes us great multitaskers.", "Why, I can sneeze and pee at the same time!"},
     {"aging", "What's worse than middle age?", "Knowing you'll grow out of it."},
     {"aging", "One benefit of old age is that your secrets are always safe with your friends...", "...because they can't remember them!"},
-    {"aging", "Age is an issue of mind over matter.", "If you don't mind getting older, then it really doesn't matter."},
     {"aging", "Now that I've gotten older, everything's finally starting to click for me.", "My knees, my back, my neck..."},
     {"aging", "I've decided whatever age I am...", "Is the new 30."},
+    {"aging", "Age is an issue of mind over matter.", "If you don't mind getting older, then it really doesn't matter."},
     {"aging", "Don't let aging get you down.", "It's too hard to get back up again."},
     {"aging", "Of all your children, the only one who won't grow up and move away is...", "Your husband."},
     {"aging", "An old woman is sitting at a bar when an older gentleman sits down beside her.", "\"So,\" he says, \"do I come here often?\""},
@@ -446,8 +447,6 @@ const vector<Joke> jokes = {
     {"aging", "Be kind to your kids.", "They choose your nursing home."},
     {"aging", "I always wanted to marry Mrs. Right.", "I just didn't know her first name would be \"Always.\""},
     {"aging", "Husbands are like lawn mowers:", "They're hard to get started, emit foul odors and don't work half the time."},
-    {"aging", "Love is like one long, sweet dream.", "Marriage is the alarm clock."},
-    {"aging", "Apparently, saying \"Oh, this old thing?\"", "Isn't an appropriate way to introduce my wife."},
     {"aging", "Retirement is wonderful.", "It's doing nothing without worrying about getting caught."},
     {"aging", "You know it's time to retire when...", "Your co-workers are wearing clothing from your youth and calling it retro."},
     {"aging", "The truth is, retirement kills more people...", "Than hard work ever did."},
@@ -469,4 +468,7 @@ const vector<Joke> jokes = {
     {"aging", "Allow me to politely suggest...", "That this be the year you start lying about your age."},
     {"aging", "With old age comes wisdom...", "And early-bird specials!"},
     {"aging", "At my age, the only pole dancing I do is...", "While holding on to the safety bar in the bathtub."},
-};
+    {"dad", "My room mate says I'm schizophrenic", "The joke's on him, I don't even have a room mate."},
+    {"dad", "I have a fear of speed bumps.", "But I'm slowly getting over it."},
+    {"dad", "How did the skeleton know that April showers were on the way?", "He could feel it in his bones."}
+}; 

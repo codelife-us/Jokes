@@ -11,10 +11,14 @@ Generates a framed `.jpg` image of a joke from the jokes collection.
 ./jokes_image -p 5 -t dark                 # dark theme
 ./jokes_image -p 5 -t all                  # save one image per theme
 ./jokes_image -p 5 -bg photo.jpg           # use photo.jpg as background
+./jokes_image -p 5 -fg overlay.png         # PNG overlay above background, below text
 ./jokes_image -p 5 -bg photo.jpg -nb      # background with no border
 ./jokes_image -p 5 -bg photo.jpg --nodim  # background without dimming
 ./jokes_image -p 5 --roundedcorners       # rounded border corners (or -rc)
-./jokes_image -p 5 --nofooter             # no footer label, border stays intact
+./jokes_image -p 5 --nofooter                      # no footer, border stays intact
+./jokes_image -p 5 --footer "My Custom Text"       # custom footer text
+./jokes_image -p 5 --footer "Joke #N - [type]"    # tokens replaced with actual values
+./jokes_image -p 5 --footer ""                     # suppress footer (same as --nofooter)
 ./jokes_image -p 5 --noborder              # no border frame (or -nb)
 ./jokes_image --setup "Why?" --punchline "Because!"  # custom text, no -p needed
 ./jokes_image -p 5 -t dark --setupcolor "#ffffff"     # white setup text
@@ -32,8 +36,11 @@ Generates a framed `.jpg` image of a joke from the jokes collection.
 | `-f, --font <path>` | Path to a `.ttf` or `.ttc` font file |
 | `-t, --theme <name>` | Color theme (default: `classic`); use `all` to output every theme |
 | `-bg, --background <file>` | Use a `.jpg` or `.png` image as the background layer |
+| `-fg, --foreground <file>` | Overlay a `.png` with transparency above the background but below text |
+| `--textsize <percent>` | Scale text size as a percentage of default (e.g. `150` = 150%, default: `100`) |
 | `--nodim` | Skip dimming the background image (default dims by 45%) |
-| `--nofooter` | Omit the footer label; border is drawn fully intact |
+| `--nofooter` | Omit the footer; border is drawn fully intact |
+| `--footer "text"` | Override the footer text; use `""` to suppress it entirely (same as `--nofooter`). Supports tokens: `[type]` = joke type, `#N` = joke number |
 | `--setup "text"` | Use custom setup text instead of a joke from the data |
 | `--punchline "text"` | Use custom punchline text instead of a joke from the data |
 | `--setupcolor "#rrggbb"` | Override the setup text color with a hex value (quote to prevent shell stripping `#`) |
@@ -55,6 +62,12 @@ Generates a framed `.jpg` image of a joke from the jokes collection.
 | `retro` | Yellow | Brown border, amber text |
 | `night` | Deep navy | Purple border, lavender setup, teal punchline |
 | `white` | Near-black | White border, white setup, white punchline |
+| `forest` | Deep green | Gold border, lime setup, pale yellow punchline |
+| `candy` | Hot pink | White border, bright yellow setup, cyan punchline |
+| `neon` | Black | Neon green border, neon green setup, neon pink punchline |
+| `parchment` | Aged paper | Brown border, dark brown setup, dark red punchline |
+| `ice` | Pale blue-white | Steel blue border, deep blue setup, teal punchline |
+| `dusk` | Deep purple | Orange border, lavender setup, peach punchline |
 
 Use `-t all` to generate one file per theme in a single run (e.g. `joke_5_classic.jpg`, `joke_5_dark.jpg`, …). The `-o` flag is ignored when using `all`.
 
@@ -75,8 +88,10 @@ g++ -std=c++17 -O2 jokes_image.cpp -o jokes_image.exe
 - 800x500 pixel JPEG, quality 90
 - Themed background and border (see Themes above), or a custom background image via `-bg`
 - When a background image is used, it is scaled to fill 800x500 and dimmed 45% by default; use `--nodim` to skip dimming
-- Text is larger (36px), bold, and horizontally centered
-- Small label sits in a gap on the bottom border: `Code Life Jokes #N  [type]` (omit with `--nofooter`)
+- Text is 36px by default, bold, and horizontally centered; scale with `--textsize <percent>`
+- Small label sits in a gap on the bottom border: `Code Life Jokes #N  [type]`
+  - Omit with `--nofooter` or `--footer ""`
+  - Override with `--footer "text"`; supports tokens `#N` (joke number) and `[type]` (joke type)
 - Setup text color and punchline color are theme-defined
 - Knock-knock jokes include the full "Knock knock / Who's there?" prompt
 - Text is word-wrapped to fit within the frame

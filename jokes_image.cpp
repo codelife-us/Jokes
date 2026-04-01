@@ -70,6 +70,12 @@ static const map<string, Theme> THEMES = {
     { "retro",   { {255,255,200}, {160,  80,   0}, {120,  60,   0}, {180, 100,   0}, {140,120, 60} } },
     { "night",   { {15,  15,  30}, {100,  60, 200}, {160, 100, 255}, {100, 220, 180}, {130,120,160} } },
     { "white",   { {30,  30,  40}, {255, 255, 255}, {255, 255, 255}, {255, 255, 255}, {200,200,200} } },
+    { "forest",  { {26,  58,  26}, {200, 160,  64}, {128, 224,  64}, {232, 232, 128}, {160,180,100} } },
+    { "candy",   { {255,  26, 140}, {255, 255, 255}, {255, 255,  64}, { 64, 255, 255}, {255,180,220} } },
+    { "neon",    { {0,    0,   0}, {  0, 255,  65}, {  0, 255,  65}, {255,   0, 160}, {100,200,100} } },
+    { "parchment",{ {245, 230, 200}, {139,  94,  42}, { 90,  48,  16}, {139,  26,  16}, {160,120, 80} } },
+    { "ice",     { {232, 244, 255}, { 64, 128, 192}, { 16,  64, 160}, {  0,  96, 128}, { 80,140,180} } },
+    { "dusk",    { {26,  10,  48}, {224, 112,  48}, {192, 128, 255}, {255, 176,  96}, {160,120,180} } },
 };
 
 static void listThemes() {
@@ -206,6 +212,31 @@ struct Image {
         return true;
     }
 
+    // Load a PNG with alpha and alpha-blend it on top of the current pixels (scaled to canvas)
+    bool loadForeground(const string& path) {
+        int srcW, srcH, channels;
+        uint8_t* data = stbi_load(path.c_str(), &srcW, &srcH, &channels, 4); // force RGBA
+        if (!data) {
+            cerr << "Error: could not load foreground image: " << path << "\n";
+            return false;
+        }
+        for (int y = 0; y < h; y++) {
+            for (int x = 0; x < w; x++) {
+                int sx = x * srcW / w;
+                int sy = y * srcH / h;
+                uint8_t* src = data + (sy * srcW + sx) * 4;
+                float a = src[3] / 255.0f;
+                if (a == 0.0f) continue;
+                uint8_t* dst = pixels.data() + (y * w + x) * 3;
+                dst[0] = (uint8_t)(src[0] * a + dst[0] * (1.0f - a));
+                dst[1] = (uint8_t)(src[1] * a + dst[1] * (1.0f - a));
+                dst[2] = (uint8_t)(src[2] * a + dst[2] * (1.0f - a));
+            }
+        }
+        stbi_image_free(data);
+        return true;
+    }
+
     // Darken the entire image by a factor in [0,1] to improve text legibility over a background
     void applyDimOverlay(float factor = 0.45f) {
         for (auto& p : pixels)
@@ -328,12 +359,16 @@ struct Font {
 bool jokeToJpeg(const Joke& joke, int jokeNumber, const string& filename,
                 const string& fontPath, const Theme& theme, bool noborder = false,
                 const string& bgPath = "", bool nodim = false, bool roundedcorners = false,
-                bool nofooter = false) {
+                bool nofooter = false, const string& labelOverride = "",
+                bool hasLabelOverride = false, float textScale = 1.0f,
+                const string& fgPath = "") {
     const int W         = 800, H = 500;
     const int MARGIN    = 50;
     const int FRAME     = 8;
     const int THICKNESS = 5;
-    const int LINE_H    = 54;
+    const int LINE_H    = (int)(54 * textScale);
+    const float FONT_SIZE       = 36.0f * textScale;
+    const float FONT_SIZE_SMALL = 18.0f * textScale;
 
     Image img(W, H, theme.bg.r, theme.bg.g, theme.bg.b);
 
@@ -342,18 +377,34 @@ bool jokeToJpeg(const Joke& joke, int jokeNumber, const string& filename,
         if (!nodim) img.applyDimOverlay();
     }
 
+    if (!fgPath.empty()) {
+        if (!img.loadForeground(fgPath)) return false;
+    }
+
     Font font;
-    if (!font.load(fontPath, 36)) {
+    if (!font.load(fontPath, FONT_SIZE)) {
         cerr << "Error: could not load font: " << fontPath << "\n";
         return false;
     }
 
-    // Measure label for border gap (skipped if nofooter)
+    // Resolve label text; empty string (explicit or nofooter) suppresses the footer
     Font smallFont;
-    string label = "Code Life Jokes #" + to_string(jokeNumber) + "  [" + joke.type + "]";
+    string label = hasLabelOverride ? labelOverride
+                                    : "Code Life Jokes #" + to_string(jokeNumber) + "  [" + joke.type + "]";
+    // Substitute [type] and #N tokens in custom labels
+    if (hasLabelOverride && !label.empty()) {
+        string type_val = joke.type.empty() ? "" : joke.type;
+        string num_val  = jokeNumber > 0 ? to_string(jokeNumber) : "";
+        size_t pos;
+        while ((pos = label.find("[type]")) != string::npos)
+            label.replace(pos, 6, type_val);
+        while ((pos = label.find("#N")) != string::npos)
+            label.replace(pos, 2, num_val);
+    }
+    bool showFooter = !nofooter && !label.empty();
     int gapX0 = -1, gapX1 = -1;
     int labelY = H - FRAME - THICKNESS / 2 + 6;
-    if (!nofooter && smallFont.load(fontPath, 18)) {
+    if (showFooter && smallFont.load(fontPath, FONT_SIZE_SMALL)) {
         const int GAP_PAD = 12;
         int lw = smallFont.textWidth(label);
         gapX0 = (W - lw) / 2 - GAP_PAD;
@@ -395,7 +446,7 @@ bool jokeToJpeg(const Joke& joke, int jokeNumber, const string& filename,
     }
 
     // Label centered in the gap on the bottom border
-    if (!nofooter && smallFont.load(fontPath, 18)) {
+    if (showFooter && smallFont.load(fontPath, FONT_SIZE_SMALL)) {
         smallFont.drawTextCentered(img, label, W, labelY, theme.label.r, theme.label.g, theme.label.b);
     }
 
@@ -452,8 +503,12 @@ void displayHelp() {
     cout << "  -f, --font <path>     Path to a .ttf or .ttc font file\n";
     cout << "  -t, --theme <name>    Color theme (default: classic)\n";
     cout << "  -bg, --background <file>  Use a .jpg/.png image as the background layer\n";
+    cout << "  -fg, --foreground <file>  Overlay a .png (with transparency) above the background, below text\n";
     cout << "  --nodim               Do not dim the background image (default: dims 45%)\n";
-    cout << "  --nofooter            Omit the 'Code Life Jokes' label and leave the border intact\n";
+    cout << "  --textsize <percent>  Scale text size (default: 100); e.g. 150 = 150%\n";
+    cout << "  --nofooter            Omit the footer and leave the border intact\n";
+    cout << "  --footer \"text\"       Override the footer text; use \"\" to suppress it entirely\n";
+    cout << "                        Tokens: [type] = joke type, #N = joke number\n";
     cout << "  --setup \"text\"        Use custom setup text instead of a joke from the data\n";
     cout << "  --punchline \"text\"    Use custom punchline text instead of a joke from the data\n";
     cout << "  --setupcolor \"#rrggbb\"     Override the setup text color (hex, quote the value)\n";
@@ -463,7 +518,7 @@ void displayHelp() {
     cout << "  -nb, --noborder       Omit the decorative border frame\n";
     cout << "  -v,  --version        Print version and exit\n";
     cout << "  -h, --help            Display this help message\n\n";
-    cout << "Themes: classic, dark, sunset, ocean, retro, night, white, all\n\n";
+    cout << "Themes: classic, dark, sunset, ocean, retro, night, white, forest, candy, neon, parchment, ice, dusk, all\n\n";
     cout << "Examples:\n";
     cout << "  ./jokes_image -p 5                     - Save joke_5.jpg\n";
     cout << "  ./jokes_image -p 5 -o funny.jpg        - Save funny.jpg\n";
@@ -472,7 +527,9 @@ void displayHelp() {
     cout << "  ./jokes_image -p 5 -f /path/to/font.ttf\n";
     cout << "  ./jokes_image -p 5 -bg photo.jpg          - Use photo.jpg as background\n";
     cout << "  ./jokes_image -p 5 -bg photo.jpg -nb      - Background with no border\n";
-    cout << "  ./jokes_image -p 5 --nofooter             - No footer label\n";
+    cout << "  ./jokes_image -p 5 --nofooter             - No footer\n";
+    cout << "  ./jokes_image -p 5 --footer \"My Text\"     - Custom footer text\n";
+    cout << "  ./jokes_image -p 5 --footer \"\"            - Suppress footer\n";
     cout << "  ./jokes_image --setup \"Why?\" --punchline \"Because!\"  - Custom text\n";
 }
 
@@ -489,9 +546,13 @@ int main(int argc, char* argv[]) {
     bool   nodim          = false;
     bool   roundedcorners = false;
     bool   nofooter       = false;
+    float  textScale      = 1.0f;
     string bgPath;
+    string fgPath;
     string customSetup;
     string customPunchline;
+    string labelOverride;
+    bool   hasLabelOverride = false;
     string setupColorHex;
     string punchlineColorHex;
     string borderColorHex;
@@ -530,8 +591,30 @@ int main(int argc, char* argv[]) {
                 }
             } else if (arg == "--nodim") {
                 nodim = true;
+            } else if (arg == "--textsize") {
+                if (i + 1 < argc) {
+                    try {
+                        float pct = stof(argv[++i]);
+                        if (pct <= 0) throw invalid_argument("");
+                        textScale = pct / 100.0f;
+                    } catch (...) {
+                        cerr << "Error: --textsize requires a positive number (e.g. 150 for 150%).\n";
+                        return 1;
+                    }
+                } else {
+                    cerr << "Error: --textsize requires a percentage value.\n";
+                    return 1;
+                }
             } else if (arg == "--nofooter") {
                 nofooter = true;
+            } else if (arg == "--footer") {
+                if (i + 1 < argc) {
+                    labelOverride = argv[++i];
+                    hasLabelOverride = true;
+                } else {
+                    cerr << "Error: --footer requires a text argument (use \"\" for no footer).\n";
+                    return 1;
+                }
             } else if (arg == "--setup") {
                 if (i + 1 < argc) {
                     customSetup = argv[++i];
@@ -574,6 +657,13 @@ int main(int argc, char* argv[]) {
                     bgPath = argv[++i];
                 } else {
                     cerr << "Error: --background requires a file path.\n";
+                    return 1;
+                }
+            } else if (arg == "-fg" || arg == "--foreground") {
+                if (i + 1 < argc) {
+                    fgPath = argv[++i];
+                } else {
+                    cerr << "Error: --foreground requires a file path.\n";
                     return 1;
                 }
             } else if (arg == "--noborder" || arg == "-nb") {
@@ -668,7 +758,7 @@ int main(int argc, char* argv[]) {
                 ? (usingCustomText ? "joke_custom_" + kv.first + ".jpg"
                                    : "joke_" + to_string(jokeNumber) + "_" + kv.first + ".jpg")
                 : outputFile;
-            ok &= jokeToJpeg(joke, jokeNumber, file, fontPath, resolveTheme(kv.second), noborder, bgPath, nodim, roundedcorners, nofooter);
+            ok &= jokeToJpeg(joke, jokeNumber, file, fontPath, resolveTheme(kv.second), noborder, bgPath, nodim, roundedcorners, nofooter, labelOverride, hasLabelOverride, textScale, fgPath);
         }
         return ok ? 0 : 1;
     }
@@ -677,5 +767,5 @@ int main(int argc, char* argv[]) {
         outputFile = usingCustomText ? "joke_custom_" + themeName + ".jpg"
                                      : "joke_" + to_string(jokeNumber) + "_" + themeName + ".jpg";
 
-    return jokeToJpeg(joke, jokeNumber, outputFile, fontPath, resolveTheme(THEMES.at(themeName)), noborder, bgPath, nodim, roundedcorners, nofooter) ? 0 : 1;
+    return jokeToJpeg(joke, jokeNumber, outputFile, fontPath, resolveTheme(THEMES.at(themeName)), noborder, bgPath, nodim, roundedcorners, nofooter, labelOverride, hasLabelOverride, textScale, fgPath) ? 0 : 1;
 }
