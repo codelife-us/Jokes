@@ -473,5 +473,6 @@ const vector<Joke> jokes = {
     {"dad", "How did the skeleton know that April showers were on the way?", "He could feel it in his bones."},
     {"dad", "Which country's capital is fastest growing?", "Ireland. Every year it's Dublin."},
     {"dad", "My wife asked for something with diamonds in it for her birthday.", "So I got her a deck of cards."},
-    {"dad", "What do you call a well-dressed lion in the spring?", "A dandy lion."}
+    {"dad", "What do you call a well-dressed lion in the spring?", "A dandy lion."},
+    {"dad", "Coffee was just voted the best drink in the nation.", "But it was unfair, there were absent tea ballots."}
 }; 
