@@ -470,5 +470,7 @@ const vector<Joke> jokes = {
     {"aging", "At my age, the only pole dancing I do is...", "While holding on to the safety bar in the bathtub."},
     {"dad", "My room mate says I'm schizophrenic", "The joke's on him, I don't even have a room mate."},
     {"dad", "I have a fear of speed bumps.", "But I'm slowly getting over it."},
-    {"dad", "How did the skeleton know that April showers were on the way?", "He could feel it in his bones."}
+    {"dad", "How did the skeleton know that April showers were on the way?", "He could feel it in his bones."},
+    {"dad", "Which country's capital is fastest growing?", "Ireland. Every year it's Dublin."},
+    {"dad", "My wife asked for something with diamonds in it for her birthday.", "So I got her a deck of cards."}
 }; 
