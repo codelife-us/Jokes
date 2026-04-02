@@ -474,5 +474,9 @@ const vector<Joke> jokes = {
     {"dad", "Which country's capital is fastest growing?", "Ireland. Every year it's Dublin."},
     {"dad", "My wife asked for something with diamonds in it for her birthday.", "So I got her a deck of cards."},
     {"dad", "What do you call a well-dressed lion in the spring?", "A dandy lion."},
-    {"dad", "Coffee was just voted the best drink in the nation.", "But it was unfair, there were absent tea ballots."}
+    {"dad", "Coffee was just voted the best drink in the nation.", "But it was unfair, there were absent tea ballots."},
+    {"dad", "Does February like March?", "No, but April May."},
+    {"dad", "Why couldn't the flower ride its bike?", "It lost its petals."},
+    {"aging", "I’ve finally reached the age where my back goes out a whole lot more than I do.", ""},
+    {"aging", "I asked my wife if she thought I was starting to get a lot of gray hair.", "She looked at me and said, \"At this point, you should just be happy it's still hair.\""}
 }; 
