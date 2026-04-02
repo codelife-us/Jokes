@@ -479,5 +479,5 @@ const vector<Joke> jokes = {
     {"dad", "Why couldn't the flower ride its bike?", "It lost its petals."},
     {"aging", "I’ve finally reached the age where my back goes out a whole lot more than I do.", ""},
     {"aging", "I asked my wife if she thought I was starting to get a lot of gray hair.", "She looked at me and said, \"At this point, you should just be happy it's still hair.\""},
-    {"dad", "I burnt my pizza last night. It is rurnt.", "I should have put it on aloha setting."}
+    {"dad", "I burnt my Hawaiian pizza last night. It is rurnt.", "I should have put it on Aloha setting."}
 }; 
