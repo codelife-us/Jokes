@@ -60,7 +60,7 @@ g++ jokes.cpp -o jokes
 
 ## Features
 
-- 466 jokes
+- 467 jokes
 - Random selection or display all jokes
 - Optionally filter by type specified
 - Colored output by default (cyan for setup, green for punchline), use `--nocolor` to disable
