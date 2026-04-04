@@ -479,5 +479,12 @@ const vector<Joke> jokes = {
     {"dad", "Why couldn't the flower ride its bike?", "It lost its petals."},
     {"aging", "I’ve finally reached the age where my back goes out a whole lot more than I do.", ""},
     {"aging", "I asked my wife if she thought I was starting to get a lot of gray hair.", "She looked at me and said, \"At this point, you should just be happy it's still hair.\""},
-    {"dad", "I burnt my Hawaiian pizza last night. It is rurnt.", "I should have put it on Aloha setting."}
+    {"dad", "I burnt my Hawaiian pizza last night. It is rurnt.", "I should have put it on Aloha setting."},
+    {"dad", "What do you call an Easter egg that goes to the gym?", "An eggs-ercise enthusiast."},
+    {"dad", "What kind of books do Easter Bunnies like?", "Ones with hoppy endings."},
+    {"dad", "What do you call a rabbit with fleas?", "Bugs Bunny."},
+    {"dad", "What do you call a line of rabbits hopping backwards?", "A receding hare-line."},
+    {"dad", "What do you call a rabbit who tells jokes?", "A funny bunny."},
+    {"dad", "What do you call a rabbit who is a musician?", "A hip-hop artist."},
+    {"dad", "I went to a psychic's house. I knocked on the door and she said, \"Come in, I know you're there.\" I was really impressed. I thought, \"Wow, she can read minds!\"", "Then I realized she just had really good hearing."}
 }; 
