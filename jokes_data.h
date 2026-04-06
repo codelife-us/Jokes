@@ -534,5 +534,5 @@ const vector<Joke> jokes = {
     {"dad", "I tried calling the tinnitus helpline.", "It just kept ringing."},
     {"math", "30% of Americans do not know how to do basic math.", "Thank God I'm part of the other 80%."},
     {"dad", "Did you know the guy who invented the wind chill factor died? He was 85.", "But he felt like he was only 74."},
-    {"dad", "I finally know why they call me a grown up.", "I groan every time I get up."}
+    {"aging", "I finally know why they call me a grown up.", "I groan every time I get up."}
 };
