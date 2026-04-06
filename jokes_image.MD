@@ -15,6 +15,9 @@ Generates a framed `.jpg` image of a joke from the jokes collection.
 ./jokes_image -p 5 -bg photo.jpg -nb      # background with no border
 ./jokes_image -p 5 -bg photo.jpg --nodim  # background without dimming
 ./jokes_image -p 5 --roundedcorners       # rounded border corners (or -rc)
+./jokes_image -p 5 --video 5                       # MP4: setup for 5s, punchline for 5s (requires ffmpeg)
+./jokes_image -p 5 --video 5 --fade 0.8           # punchline wipes in from the right over 0.8 seconds
+./jokes_image -p 5 --video 5 -o reveal.mp4        # custom output filename
 ./jokes_image -p 5 --nofooter                      # no footer, border stays intact
 ./jokes_image -p 5 --footer "My Custom Text"       # custom footer text
 ./jokes_image -p 5 --footer "Joke #N - [type]"    # tokens replaced with actual values
@@ -35,7 +38,10 @@ Generates a framed `.jpg` image of a joke from the jokes collection.
 |---|---|
 | `-p, --pick <number>` | Joke number to render (required unless `--setup`/`--punchline` used) |
 | `-o, --output <file>` | Output filename (default: `joke_<number>_<theme>.jpg`) |
-| `-f, --font <path>` | Path to a `.ttf` or `.ttc` font file |
+| `-f, --font <path>` | Path to a `.ttf` or `.ttc` font file (fallback for all roles) |
+| `--setupfont <path>` | Font for setup text (overrides `-f` for setup only) |
+| `--punchlinefont <path>` | Font for punchline text (overrides `-f` for punchline only) |
+| `--footerfont <path>` | Font for footer label (overrides `-f` for footer only) |
 | `-t, --theme <name>` | Color theme (default: `classic`); use `all` to output every theme |
 | `-bg, --background <file>` | Use a `.jpg` or `.png` image as the background layer |
 | `-fg, --foreground <file>` | Overlay a `.png` with transparency above the background but below text |
@@ -51,6 +57,8 @@ Generates a framed `.jpg` image of a joke from the jokes collection.
 | `--bordercolor "#rrggbb"` | Override the border color with a hex value (quote to prevent shell stripping `#`) |
 | `-rc, --roundedcorners` | Use rounded corners on the border frame |
 | `-nb, --noborder` | Omit the decorative border frame |
+| `--video <seconds>` | Generate an MP4: setup shown for N seconds, then setup+punchline for N more seconds. Requires `ffmpeg` in PATH. Output defaults to `joke_<N>_<theme>.mp4`; use `-o` to override |
+| `--fade <seconds>` | Used with `--video`: adds a `wipeleft` transition when the punchline appears (e.g. `--fade 0.8`). Without this flag the cut is instant |
 | `-v, --version` | Print version and exit |
 | `-h, --help` | Display help message |
 

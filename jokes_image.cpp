@@ -362,7 +362,11 @@ bool jokeToJpeg(const Joke& joke, int jokeNumber, const string& filename,
                 bool nofooter = false, const string& labelOverride = "",
                 bool hasLabelOverride = false, float textScale = 1.0f,
                 const string& fgPath = "", const string& halign = "center",
-                const string& valign = "top") {
+                const string& valign = "middle",
+                const string& setupFontPath = "",
+                const string& punchlineFontPath = "",
+                const string& footerFontPath = "",
+                bool nopunchline = false) {
     const int W         = 800, H = 500;
     const int MARGIN    = 50;
     const int FRAME     = 8;
@@ -382,9 +386,19 @@ bool jokeToJpeg(const Joke& joke, int jokeNumber, const string& filename,
         if (!img.loadForeground(fgPath)) return false;
     }
 
-    Font font;
-    if (!font.load(fontPath, FONT_SIZE)) {
-        cerr << "Error: could not load font: " << fontPath << "\n";
+    // Resolve per-role font paths, falling back to -f for any not specified
+    const string& setupFP    = setupFontPath.empty()     ? fontPath : setupFontPath;
+    const string& punchFP    = punchlineFontPath.empty() ? fontPath : punchlineFontPath;
+    const string& footerFP   = footerFontPath.empty()    ? fontPath : footerFontPath;
+
+    Font setupFont;
+    if (!setupFont.load(setupFP, FONT_SIZE)) {
+        cerr << "Error: could not load setup font: " << setupFP << "\n";
+        return false;
+    }
+    Font punchFont;
+    if (!punchFont.load(punchFP, FONT_SIZE)) {
+        cerr << "Error: could not load punchline font: " << punchFP << "\n";
         return false;
     }
 
@@ -405,7 +419,7 @@ bool jokeToJpeg(const Joke& joke, int jokeNumber, const string& filename,
     bool showFooter = !nofooter && !label.empty();
     int gapX0 = -1, gapX1 = -1;
     int labelY = H - FRAME - THICKNESS / 2 + 6;
-    if (showFooter && smallFont.load(fontPath, FONT_SIZE_SMALL)) {
+    if (showFooter && smallFont.load(footerFP, FONT_SIZE_SMALL)) {
         const int GAP_PAD = 12;
         int lw = smallFont.textWidth(label);
         gapX0 = (W - lw) / 2 - GAP_PAD;
@@ -428,14 +442,15 @@ bool jokeToJpeg(const Joke& joke, int jokeNumber, const string& filename,
     const int TEXT_GAP = 20; // gap between setup and punchline blocks
 
     // Pre-wrap both blocks so we know total height before drawing
-    auto setupLines = font.wrapText(
+    auto setupLines = setupFont.wrapText(
         joke.type == "knock-knock"
             ? "Knock knock! Who's there? " + joke.setup + "  " + joke.setup + " who?"
             : joke.setup,
         textMaxWidth);
-    auto punchLines = font.wrapText(joke.punchline, textMaxWidth);
+    auto punchLines = nopunchline ? vector<string>{} : punchFont.wrapText(joke.punchline, textMaxWidth);
 
-    int totalTextH = ((int)setupLines.size() + (int)punchLines.size()) * LINE_H + TEXT_GAP;
+    int totalTextH = (int)setupLines.size() * LINE_H
+                   + (punchLines.empty() ? 0 : (int)punchLines.size() * LINE_H + TEXT_GAP);
 
     // Vertical start position
     const int topBound    = FRAME + THICKNESS + MARGIN;
@@ -445,23 +460,23 @@ bool jokeToJpeg(const Joke& joke, int jokeNumber, const string& filename,
         y = topBound + (bottomBound - topBound - totalTextH) / 2 + (int)FONT_SIZE;
     else if (valign == "bottom")
         y = bottomBound - totalTextH + (int)FONT_SIZE;
-    else // top (default)
+    else // top
         y = topBound + (int)FONT_SIZE;
 
-    // Helper: draw one line at y with current halign
-    auto drawLine = [&](const string& text, int lineY,
+    // Helper: draw one line with the given font and halign
+    auto drawLine = [&](const Font& f, const string& text, int lineY,
                         uint8_t r, uint8_t g, uint8_t b) {
         if (halign == "left")
-            font.drawText(img, text, MARGIN, lineY, r, g, b, true);
+            f.drawText(img, text, MARGIN, lineY, r, g, b, true);
         else if (halign == "right")
-            font.drawText(img, text, W - MARGIN - font.textWidth(text), lineY, r, g, b, true);
+            f.drawText(img, text, W - MARGIN - f.textWidth(text), lineY, r, g, b, true);
         else
-            font.drawTextCentered(img, text, W, lineY, r, g, b, true);
+            f.drawTextCentered(img, text, W, lineY, r, g, b, true);
     };
 
     // Draw setup
     for (auto& line : setupLines) {
-        drawLine(line, y, theme.setup.r, theme.setup.g, theme.setup.b);
+        drawLine(setupFont, line, y, theme.setup.r, theme.setup.g, theme.setup.b);
         y += LINE_H;
     }
 
@@ -469,12 +484,12 @@ bool jokeToJpeg(const Joke& joke, int jokeNumber, const string& filename,
 
     // Draw punchline
     for (auto& line : punchLines) {
-        drawLine(line, y, theme.punchline.r, theme.punchline.g, theme.punchline.b);
+        drawLine(punchFont, line, y, theme.punchline.r, theme.punchline.g, theme.punchline.b);
         y += LINE_H;
     }
 
     // Label centered in the gap on the bottom border
-    if (showFooter && smallFont.load(fontPath, FONT_SIZE_SMALL)) {
+    if (showFooter && smallFont.load(footerFP, FONT_SIZE_SMALL)) {
         smallFont.drawTextCentered(img, label, W, labelY, theme.label.r, theme.label.g, theme.label.b);
     }
 
@@ -528,7 +543,10 @@ void displayHelp() {
     cout << "Options:\n";
     cout << "  -p, --pick <number>   Joke number to render (required)\n";
     cout << "  -o, --output <file>   Output filename (default: joke_<number>.jpg)\n";
-    cout << "  -f, --font <path>     Path to a .ttf or .ttc font file\n";
+    cout << "  -f, --font <path>     Path to a .ttf or .ttc font file (fallback for all roles)\n";
+    cout << "  --setupfont <path>    Font for setup text (overrides -f for setup)\n";
+    cout << "  --punchlinefont <path> Font for punchline text (overrides -f for punchline)\n";
+    cout << "  --footerfont <path>   Font for footer label (overrides -f for footer)\n";
     cout << "  -t, --theme <name>    Color theme (default: classic)\n";
     cout << "  -bg, --background <file>  Use a .jpg/.png image as the background layer\n";
     cout << "  -fg, --foreground <file>  Overlay a .png (with transparency) above the background, below text\n";
@@ -546,6 +564,10 @@ void displayHelp() {
     cout << "  --bordercolor \"#rrggbb\"    Override the border color (hex, quote the value)\n";
     cout << "  -rc, --roundedcorners Use rounded corners on the border frame\n";
     cout << "  -nb, --noborder       Omit the decorative border frame\n";
+    cout << "  --video <seconds>     Generate an MP4: setup shown for N seconds, then punchline for N more\n";
+    cout << "                        Requires ffmpeg to be installed and in PATH\n";
+    cout << "  --fade <seconds>      Used with --video: add a wipeleft transition when punchline appears\n";
+    cout << "                        (e.g. --fade 0.8 for a 0.8-second wipe from the right)\n";
     cout << "  -v,  --version        Print version and exit\n";
     cout << "  -h, --help            Display this help message\n\n";
     cout << "Themes: classic, dark, sunset, ocean, retro, night, white, forest, candy, neon, parchment, ice, dusk, all\n\n";
@@ -579,6 +601,9 @@ int main(int argc, char* argv[]) {
     float  textScale      = 1.0f;
     string halign         = "center";
     string valign         = "middle";
+    string setupFontPath;
+    string punchlineFontPath;
+    string footerFontPath;
     string bgPath;
     string fgPath;
     string customSetup;
@@ -588,6 +613,8 @@ int main(int argc, char* argv[]) {
     string setupColorHex;
     string punchlineColorHex;
     string borderColorHex;
+    int    videoSeconds = 0;
+    float  fadeDuration = 0.0f;
 
     try {
         for (int i = 1; i < argc; i++) {
@@ -611,6 +638,27 @@ int main(int argc, char* argv[]) {
                     fontPath = argv[++i];
                 } else {
                     cerr << "Error: --font requires a path.\n";
+                    return 1;
+                }
+            } else if (arg == "--setupfont") {
+                if (i + 1 < argc) {
+                    setupFontPath = argv[++i];
+                } else {
+                    cerr << "Error: --setupfont requires a path.\n";
+                    return 1;
+                }
+            } else if (arg == "--punchlinefont") {
+                if (i + 1 < argc) {
+                    punchlineFontPath = argv[++i];
+                } else {
+                    cerr << "Error: --punchlinefont requires a path.\n";
+                    return 1;
+                }
+            } else if (arg == "--footerfont") {
+                if (i + 1 < argc) {
+                    footerFontPath = argv[++i];
+                } else {
+                    cerr << "Error: --footerfont requires a path.\n";
                     return 1;
                 }
             } else if (arg == "-t" || arg == "--theme") {
@@ -722,6 +770,32 @@ int main(int argc, char* argv[]) {
                 }
             } else if (arg == "--noborder" || arg == "-nb") {
                 noborder = true;
+            } else if (arg == "--video") {
+                if (i + 1 < argc) {
+                    try {
+                        videoSeconds = stoi(argv[++i]);
+                        if (videoSeconds <= 0) throw invalid_argument("");
+                    } catch (...) {
+                        cerr << "Error: --video requires a positive integer (seconds).\n";
+                        return 1;
+                    }
+                } else {
+                    cerr << "Error: --video requires a number of seconds.\n";
+                    return 1;
+                }
+            } else if (arg == "--fade") {
+                if (i + 1 < argc) {
+                    try {
+                        fadeDuration = stof(argv[++i]);
+                        if (fadeDuration <= 0) throw invalid_argument("");
+                    } catch (...) {
+                        cerr << "Error: --fade requires a positive number of seconds (e.g. 0.8).\n";
+                        return 1;
+                    }
+                } else {
+                    cerr << "Error: --fade requires a duration in seconds.\n";
+                    return 1;
+                }
             } else if (arg == "--version" || arg == "-v") {
                 cout << "jokes_image version " << VERSION << "\n";
                 return 0;
@@ -812,14 +886,91 @@ int main(int argc, char* argv[]) {
                 ? (usingCustomText ? "joke_custom_" + kv.first + ".jpg"
                                    : "joke_" + to_string(jokeNumber) + "_" + kv.first + ".jpg")
                 : outputFile;
-            ok &= jokeToJpeg(joke, jokeNumber, file, fontPath, resolveTheme(kv.second), noborder, bgPath, nodim, roundedcorners, nofooter, labelOverride, hasLabelOverride, textScale, fgPath, halign, valign);
+            ok &= jokeToJpeg(joke, jokeNumber, file, fontPath, resolveTheme(kv.second), noborder, bgPath, nodim, roundedcorners, nofooter, labelOverride, hasLabelOverride, textScale, fgPath, halign, valign, setupFontPath, punchlineFontPath, footerFontPath);
         }
         return ok ? 0 : 1;
+    }
+
+    Theme resolvedTheme = resolveTheme(THEMES.at(themeName));
+
+    // --video: generate setup-only frame + full frame, then call FFmpeg to concat
+    if (videoSeconds > 0) {
+        string base = usingCustomText ? "joke_custom_" + themeName
+                                      : "joke_" + to_string(jokeNumber) + "_" + themeName;
+        string setupTmp = base + "_setup_tmp.jpg";
+        string fullTmp  = base + "_full_tmp.jpg";
+
+        string videoFile;
+        if (!outputFile.empty()) {
+            videoFile = outputFile;
+        } else {
+            videoFile = base + ".mp4";
+        }
+
+        // Frame 1: setup only (no punchline)
+        if (!jokeToJpeg(joke, jokeNumber, setupTmp, fontPath, resolvedTheme, noborder, bgPath, nodim,
+                        roundedcorners, nofooter, labelOverride, hasLabelOverride, textScale, fgPath,
+                        halign, valign, setupFontPath, punchlineFontPath, footerFontPath, /*nopunchline=*/true)) {
+            return 1;
+        }
+
+        // Frame 2: full joke (setup + punchline)
+        if (!jokeToJpeg(joke, jokeNumber, fullTmp, fontPath, resolvedTheme, noborder, bgPath, nodim,
+                        roundedcorners, nofooter, labelOverride, hasLabelOverride, textScale, fgPath,
+                        halign, valign, setupFontPath, punchlineFontPath, footerFontPath, /*nopunchline=*/false)) {
+            remove(setupTmp.c_str());
+            return 1;
+        }
+
+        // Build and run FFmpeg command
+        // Setup frame holds for videoSeconds, punchline frame holds for videoSeconds more
+        string cmd;
+        if (fadeDuration > 0.0f) {
+            // xfade: setup for N seconds, then wipeleft transition for fadeDuration, then punchline for N seconds
+            // offset = N - fadeDuration (transition starts fadeDuration before end of setup segment)
+            // input1 duration = N + fadeDuration (so full N seconds of punchline show after transition)
+            // total output = 2*N seconds
+            float N = (float)videoSeconds;
+            float D = fadeDuration;
+            float offset = N - D;
+            if (offset < 0.0f) offset = 0.0f;
+            char buf[256];
+            snprintf(buf, sizeof(buf), "%.3f", D);      string dStr(buf);
+            snprintf(buf, sizeof(buf), "%.3f", offset);  string oStr(buf);
+            snprintf(buf, sizeof(buf), "%.3f", N);        string nStr(buf);
+            snprintf(buf, sizeof(buf), "%.3f", N + D);   string n2Str(buf);
+            cmd = "ffmpeg -y"
+                  " -loop 1 -t " + nStr  + " -i \"" + setupTmp + "\""
+                  " -loop 1 -t " + n2Str + " -i \"" + fullTmp  + "\""
+                  " -filter_complex \"[0:v][1:v]xfade=transition=wipeleft:duration=" + dStr + ":offset=" + oStr + "[v]\""
+                  " -map \"[v]\" -pix_fmt yuv420p"
+                  " \"" + videoFile + "\"";
+        } else {
+            cmd = "ffmpeg -y"
+                  " -loop 1 -t " + to_string(videoSeconds) + " -i \"" + setupTmp + "\""
+                  " -loop 1 -t " + to_string(videoSeconds) + " -i \"" + fullTmp  + "\""
+                  " -filter_complex \"[0:v][1:v]concat=n=2:v=1:a=0\""
+                  " -pix_fmt yuv420p"
+                  " \"" + videoFile + "\"";
+        }
+
+        cout << "Running: " << cmd << "\n";
+        int ret = system(cmd.c_str());
+
+        remove(setupTmp.c_str());
+        remove(fullTmp.c_str());
+
+        if (ret != 0) {
+            cerr << "Error: FFmpeg failed (exit code " << ret << "). Is ffmpeg installed?\n";
+            return 1;
+        }
+        cout << "Video saved: " << videoFile << "\n";
+        return 0;
     }
 
     if (outputFile.empty())
         outputFile = usingCustomText ? "joke_custom_" + themeName + ".jpg"
                                      : "joke_" + to_string(jokeNumber) + "_" + themeName + ".jpg";
 
-    return jokeToJpeg(joke, jokeNumber, outputFile, fontPath, resolveTheme(THEMES.at(themeName)), noborder, bgPath, nodim, roundedcorners, nofooter, labelOverride, hasLabelOverride, textScale, fgPath, halign, valign) ? 0 : 1;
+    return jokeToJpeg(joke, jokeNumber, outputFile, fontPath, resolvedTheme, noborder, bgPath, nodim, roundedcorners, nofooter, labelOverride, hasLabelOverride, textScale, fgPath, halign, valign, setupFontPath, punchlineFontPath, footerFontPath) ? 0 : 1;
 }
