@@ -447,7 +447,9 @@ bool jokeToJpeg(const Joke& joke, int jokeNumber, const string& filename,
             ? "Knock knock! Who's there? " + joke.setup + "  " + joke.setup + " who?"
             : joke.setup,
         textMaxWidth);
-    auto punchLines = nopunchline ? vector<string>{} : punchFont.wrapText(joke.punchline, textMaxWidth);
+    // Always wrap punchline for height calculation so setup stays at the same Y
+    // in both the setup-only frame and the full frame (used by --video).
+    auto punchLines = punchFont.wrapText(joke.punchline, textMaxWidth);
 
     int totalTextH = (int)setupLines.size() * LINE_H
                    + (punchLines.empty() ? 0 : (int)punchLines.size() * LINE_H + TEXT_GAP);
@@ -480,12 +482,13 @@ bool jokeToJpeg(const Joke& joke, int jokeNumber, const string& filename,
         y += LINE_H;
     }
 
-    y += TEXT_GAP;
-
-    // Draw punchline
-    for (auto& line : punchLines) {
-        drawLine(punchFont, line, y, theme.punchline.r, theme.punchline.g, theme.punchline.b);
-        y += LINE_H;
+    // Draw punchline (suppressed in setup-only frame for --video)
+    if (!nopunchline) {
+        y += TEXT_GAP;
+        for (auto& line : punchLines) {
+            drawLine(punchFont, line, y, theme.punchline.r, theme.punchline.g, theme.punchline.b);
+            y += LINE_H;
+        }
     }
 
     // Label centered in the gap on the bottom border
