@@ -7,7 +7,7 @@
 using namespace std;
 
 struct Joke {
-    string type;   // e.g. "dad", "knock-knock", "pun", "math", "tech"
+    string type;   // e.g. "dad", "knock-knock", "pun", "math", "tech", "work", "aging"
     string setup;
     string punchline;
 };
@@ -531,5 +531,6 @@ const vector<Joke> jokes = {
     {"dad", "I accidentally swallowed some food coloring.", "The doctor says I'll be fine, but I feel like I've dyed a little inside."},
     {"dad", "Why do bees hum?", "Because they don't know the words."},
     {"dad", "Why was the calendar anxious?", "Its days were numbered."},
-    {"dad", "I tried calling the tinnitus helpline.", "It just kept ringing."}    
+    {"dad", "I tried calling the tinnitus helpline.", "It just kept ringing."},
+    {"math", "30% of Americans do not know how to do basic math.", "Thank God I'm part of the other 80%."}
 };
