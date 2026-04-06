@@ -361,7 +361,8 @@ bool jokeToJpeg(const Joke& joke, int jokeNumber, const string& filename,
                 const string& bgPath = "", bool nodim = false, bool roundedcorners = false,
                 bool nofooter = false, const string& labelOverride = "",
                 bool hasLabelOverride = false, float textScale = 1.0f,
-                const string& fgPath = "") {
+                const string& fgPath = "", const string& halign = "center",
+                const string& valign = "top") {
     const int W         = 800, H = 500;
     const int MARGIN    = 50;
     const int FRAME     = 8;
@@ -424,24 +425,51 @@ bool jokeToJpeg(const Joke& joke, int jokeNumber, const string& filename,
     }
 
     int textMaxWidth = W - MARGIN * 2;
-    int y = MARGIN + 28;
+    const int TEXT_GAP = 20; // gap between setup and punchline blocks
 
-    // Setup text — bold, centered
+    // Pre-wrap both blocks so we know total height before drawing
     auto setupLines = font.wrapText(
         joke.type == "knock-knock"
             ? "Knock knock! Who's there? " + joke.setup + "  " + joke.setup + " who?"
             : joke.setup,
         textMaxWidth);
+    auto punchLines = font.wrapText(joke.punchline, textMaxWidth);
+
+    int totalTextH = ((int)setupLines.size() + (int)punchLines.size()) * LINE_H + TEXT_GAP;
+
+    // Vertical start position
+    const int topBound    = FRAME + THICKNESS + MARGIN;
+    const int bottomBound = H - FRAME - THICKNESS - MARGIN - (showFooter ? (int)FONT_SIZE_SMALL : 0);
+    int y;
+    if (valign == "middle")
+        y = topBound + (bottomBound - topBound - totalTextH) / 2 + (int)FONT_SIZE;
+    else if (valign == "bottom")
+        y = bottomBound - totalTextH + (int)FONT_SIZE;
+    else // top (default)
+        y = topBound + (int)FONT_SIZE;
+
+    // Helper: draw one line at y with current halign
+    auto drawLine = [&](const string& text, int lineY,
+                        uint8_t r, uint8_t g, uint8_t b) {
+        if (halign == "left")
+            font.drawText(img, text, MARGIN, lineY, r, g, b, true);
+        else if (halign == "right")
+            font.drawText(img, text, W - MARGIN - font.textWidth(text), lineY, r, g, b, true);
+        else
+            font.drawTextCentered(img, text, W, lineY, r, g, b, true);
+    };
+
+    // Draw setup
     for (auto& line : setupLines) {
-        font.drawTextCentered(img, line, W, y, theme.setup.r, theme.setup.g, theme.setup.b, true);
+        drawLine(line, y, theme.setup.r, theme.setup.g, theme.setup.b);
         y += LINE_H;
     }
 
-    y += 20; // gap
+    y += TEXT_GAP;
 
-    // Punchline text — bold, centered
-    for (auto& line : font.wrapText(joke.punchline, textMaxWidth)) {
-        font.drawTextCentered(img, line, W, y, theme.punchline.r, theme.punchline.g, theme.punchline.b, true);
+    // Draw punchline
+    for (auto& line : punchLines) {
+        drawLine(line, y, theme.punchline.r, theme.punchline.g, theme.punchline.b);
         y += LINE_H;
     }
 
@@ -506,6 +534,8 @@ void displayHelp() {
     cout << "  -fg, --foreground <file>  Overlay a .png (with transparency) above the background, below text\n";
     cout << "  --nodim               Do not dim the background image (default: dims 45%)\n";
     cout << "  --textsize <percent>  Scale text size (default: 100); e.g. 150 = 150%\n";
+    cout << "  --aligntext h,v      Text alignment: h = left|center|right, v = top|middle|bottom\n";
+    cout << "                       Default: center,middle  e.g. --aligntext left,top\n";
     cout << "  --nofooter            Omit the footer and leave the border intact\n";
     cout << "  --footer \"text\"       Override the footer text; use \"\" to suppress it entirely\n";
     cout << "                        Tokens: [type] = joke type, #N = joke number\n";
@@ -547,6 +577,8 @@ int main(int argc, char* argv[]) {
     bool   roundedcorners = false;
     bool   nofooter       = false;
     float  textScale      = 1.0f;
+    string halign         = "center";
+    string valign         = "middle";
     string bgPath;
     string fgPath;
     string customSetup;
@@ -591,6 +623,28 @@ int main(int argc, char* argv[]) {
                 }
             } else if (arg == "--nodim") {
                 nodim = true;
+            } else if (arg == "--aligntext") {
+                if (i + 1 < argc) {
+                    string val = argv[++i];
+                    size_t comma = val.find(',');
+                    if (comma == string::npos) {
+                        cerr << "Error: --aligntext requires two values separated by a comma (e.g. center,middle).\n";
+                        return 1;
+                    }
+                    halign = val.substr(0, comma);
+                    valign = val.substr(comma + 1);
+                    if (halign != "left" && halign != "center" && halign != "right") {
+                        cerr << "Error: invalid horizontal alignment '" << halign << "'. Use left, center, or right.\n";
+                        return 1;
+                    }
+                    if (valign != "top" && valign != "middle" && valign != "bottom") {
+                        cerr << "Error: invalid vertical alignment '" << valign << "'. Use top, middle, or bottom.\n";
+                        return 1;
+                    }
+                } else {
+                    cerr << "Error: --aligntext requires a value (e.g. center,middle).\n";
+                    return 1;
+                }
             } else if (arg == "--textsize") {
                 if (i + 1 < argc) {
                     try {
@@ -758,7 +812,7 @@ int main(int argc, char* argv[]) {
                 ? (usingCustomText ? "joke_custom_" + kv.first + ".jpg"
                                    : "joke_" + to_string(jokeNumber) + "_" + kv.first + ".jpg")
                 : outputFile;
-            ok &= jokeToJpeg(joke, jokeNumber, file, fontPath, resolveTheme(kv.second), noborder, bgPath, nodim, roundedcorners, nofooter, labelOverride, hasLabelOverride, textScale, fgPath);
+            ok &= jokeToJpeg(joke, jokeNumber, file, fontPath, resolveTheme(kv.second), noborder, bgPath, nodim, roundedcorners, nofooter, labelOverride, hasLabelOverride, textScale, fgPath, halign, valign);
         }
         return ok ? 0 : 1;
     }
@@ -767,5 +821,5 @@ int main(int argc, char* argv[]) {
         outputFile = usingCustomText ? "joke_custom_" + themeName + ".jpg"
                                      : "joke_" + to_string(jokeNumber) + "_" + themeName + ".jpg";
 
-    return jokeToJpeg(joke, jokeNumber, outputFile, fontPath, resolveTheme(THEMES.at(themeName)), noborder, bgPath, nodim, roundedcorners, nofooter, labelOverride, hasLabelOverride, textScale, fgPath) ? 0 : 1;
+    return jokeToJpeg(joke, jokeNumber, outputFile, fontPath, resolveTheme(THEMES.at(themeName)), noborder, bgPath, nodim, roundedcorners, nofooter, labelOverride, hasLabelOverride, textScale, fgPath, halign, valign) ? 0 : 1;
 }

@@ -20,7 +20,9 @@ Generates a framed `.jpg` image of a joke from the jokes collection.
 ./jokes_image -p 5 --footer "Joke #N - [type]"    # tokens replaced with actual values
 ./jokes_image -p 5 --footer ""                     # suppress footer (same as --nofooter)
 ./jokes_image -p 5 --noborder              # no border frame (or -nb)
-./jokes_image --setup "Why?" --punchline "Because!"  # custom text, no -p needed
+./jokes_image --setup "Why?" --punchline "Because!"    # custom text, no -p needed
+./jokes_image -p 5 --aligntext center,middle           # centered on both axes
+./jokes_image -p 5 --aligntext left,bottom             # left-aligned, pinned to bottom
 ./jokes_image -p 5 -t dark --setupcolor "#ffffff"     # white setup text
 ./jokes_image -p 5 --setupcolor "#ff6600" --punchlinecolor "#ffffff"  # custom colors
 ./jokes_image --version                    # print version (or -v)
@@ -38,6 +40,7 @@ Generates a framed `.jpg` image of a joke from the jokes collection.
 | `-bg, --background <file>` | Use a `.jpg` or `.png` image as the background layer |
 | `-fg, --foreground <file>` | Overlay a `.png` with transparency above the background but below text |
 | `--textsize <percent>` | Scale text size as a percentage of default (e.g. `150` = 150%, default: `100`) |
+| `--aligntext h,v` | Set text alignment: `h` = `left\|center\|right`, `v` = `top\|middle\|bottom` (default: `center,middle`) |
 | `--nodim` | Skip dimming the background image (default dims by 45%) |
 | `--nofooter` | Omit the footer; border is drawn fully intact |
 | `--footer "text"` | Override the footer text; use `""` to suppress it entirely (same as `--nofooter`). Supports tokens: `[type]` = joke type, `#N` = joke number |
