@@ -26,8 +26,10 @@ Generates a framed `.jpg` image of a joke from the jokes collection.
 ./jokes_image --setup "Why?" --punchline "Because!"    # custom text, no -p needed
 ./jokes_image -p 5 --aligntext center,middle           # centered on both axes
 ./jokes_image -p 5 --aligntext left,bottom             # left-aligned, pinned to bottom
-./jokes_image -p 5 -t dark --setupcolor "#ffffff"     # white setup text
-./jokes_image -p 5 --setupcolor "#ff6600" --punchlinecolor "#ffffff"  # custom colors
+./jokes_image -p 5 -t dark --setupcolor white          # white setup text (by name)
+./jokes_image -p 5 -t dark --setupcolor "#ffffff"      # white setup text (by hex)
+./jokes_image -p 5 --setupcolor coral --punchlinecolor gold   # named colors
+./jokes_image -p 5 --setupcolor "#ff6600" --punchlinecolor "#ffffff"  # hex colors
 ./jokes_image --version                    # print version (or -v)
 ./jokes_image -h                            # help
 ```
@@ -52,9 +54,13 @@ Generates a framed `.jpg` image of a joke from the jokes collection.
 | `--footer "text"` | Override the footer text; use `""` to suppress it entirely (same as `--nofooter`). Supports tokens: `[type]` = joke type, `#N` = joke number |
 | `--setup "text"` | Use custom setup text instead of a joke from the data |
 | `--punchline "text"` | Use custom punchline text instead of a joke from the data |
-| `--setupcolor "#rrggbb"` | Override the setup text color with a hex value (quote to prevent shell stripping `#`) |
-| `--punchlinecolor "#rrggbb"` | Override the punchline text color with a hex value (quote to prevent shell stripping `#`) |
-| `--bordercolor "#rrggbb"` | Override the border color with a hex value (quote to prevent shell stripping `#`) |
+| `--setupcolor <color>` | Override the setup text color. Accepts a color name (e.g. `red`, `white`, `gold`) or hex value (e.g. `"#ff0000"`). Quote hex values to prevent shell stripping `#` |
+| `--punchlinecolor <color>` | Override the punchline text color. Same color name or hex format as `--setupcolor` |
+| `--bordercolor <color>` | Override the border color. Same color name or hex format as `--setupcolor` |
+
+**Named colors:** `black`, `white`, `red`, `green`, `blue`, `yellow`, `orange`, `purple`, `pink`, `cyan`, `magenta`, `gray`, `grey`, `silver`, `brown`, `gold`, `lime`, `teal`, `navy`, `maroon`, `olive`, `coral`, `salmon`, `violet`, `indigo`
+
+Color names are case-insensitive (`White`, `WHITE`, and `white` all work).
 | `-rc, --roundedcorners` | Use rounded corners on the border frame |
 | `-nb, --noborder` | Omit the decorative border frame |
 | `--video <seconds>` | Generate an MP4: setup shown for N seconds, then setup+punchline for N more seconds. Requires `ffmpeg` in PATH. Output defaults to `joke_<N>_<theme>.mp4`; use `-o` to override |

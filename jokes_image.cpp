@@ -45,7 +45,7 @@
 
 using namespace std;
 
-static const char* VERSION = "2.2";
+static const char* VERSION = "2.3";
 
 // ----------------------------------------------------------------------------
 // Theme
@@ -536,10 +536,44 @@ string defaultFontPath() {
 }
 
 // ----------------------------------------------------------------------------
-// Hex color parser  (#rrggbb or rrggbb)
+// Color parser  (named color, #rrggbb, or rrggbb)
 // ----------------------------------------------------------------------------
 
-static bool parseHexColor(const string& s, Color& out) {
+static bool parseColor(const string& s, Color& out) {
+    // Named colors
+    static const map<string, Color> NAMED = {
+        { "black",   {  0,   0,   0} },
+        { "white",   {255, 255, 255} },
+        { "red",     {255,   0,   0} },
+        { "green",   {  0, 200,   0} },
+        { "blue",    {  0,   0, 255} },
+        { "yellow",  {255, 255,   0} },
+        { "orange",  {255, 165,   0} },
+        { "purple",  {128,   0, 128} },
+        { "pink",    {255, 105, 180} },
+        { "cyan",    {  0, 255, 255} },
+        { "magenta", {255,   0, 255} },
+        { "gray",    {128, 128, 128} },
+        { "grey",    {128, 128, 128} },
+        { "silver",  {192, 192, 192} },
+        { "brown",   {139,  69,  19} },
+        { "gold",    {255, 215,   0} },
+        { "lime",    {  0, 255,   0} },
+        { "teal",    {  0, 128, 128} },
+        { "navy",    {  0,   0, 128} },
+        { "maroon",  {128,   0,   0} },
+        { "olive",   {128, 128,   0} },
+        { "coral",   {255,  80,  60} },
+        { "salmon",  {250, 128, 114} },
+        { "violet",  {238, 130, 238} },
+        { "indigo",  { 75,   0, 130} },
+    };
+    // Case-insensitive lookup
+    string lower = s;
+    for (auto& c : lower) c = (char)tolower((unsigned char)c);
+    auto it = NAMED.find(lower);
+    if (it != NAMED.end()) { out = it->second; return true; }
+    // Hex fallback
     string h = s;
     if (!h.empty() && h[0] == '#') h = h.substr(1);
     if (h.size() != 6) return false;
@@ -577,9 +611,12 @@ void displayHelp() {
     cout << "                        Tokens: [type] = joke type, #N = joke number\n";
     cout << "  --setup \"text\"        Use custom setup text instead of a joke from the data\n";
     cout << "  --punchline \"text\"    Use custom punchline text instead of a joke from the data\n";
-    cout << "  --setupcolor \"#rrggbb\"     Override the setup text color (hex, quote the value)\n";
-    cout << "  --punchlinecolor \"#rrggbb\" Override the punchline text color (hex, quote the value)\n";
-    cout << "  --bordercolor \"#rrggbb\"    Override the border color (hex, quote the value)\n";
+    cout << "  --setupcolor <color>      Override the setup text color (name or hex, e.g. red, \"#ff0000\")\n";
+    cout << "  --punchlinecolor <color>  Override the punchline text color (name or hex)\n";
+    cout << "  --bordercolor <color>     Override the border color (name or hex)\n";
+    cout << "                            Named colors: black, white, red, green, blue, yellow, orange,\n";
+    cout << "                              purple, pink, cyan, magenta, gray, silver, brown, gold,\n";
+    cout << "                              lime, teal, navy, maroon, olive, coral, salmon, violet, indigo\n";
     cout << "  -rc, --roundedcorners Use rounded corners on the border frame\n";
     cout << "  -nb, --noborder       Omit the decorative border frame\n";
     cout << "  --video <seconds>     Generate an MP4: setup shown for N seconds, then punchline for N more\n";
@@ -845,21 +882,21 @@ int main(int argc, char* argv[]) {
     bool hasPunchlineColor  = false;
     bool hasBorderColor     = false;
     if (!setupColorHex.empty()) {
-        if (!parseHexColor(setupColorHex, overrideSetup)) {
+        if (!parseColor(setupColorHex, overrideSetup)) {
             cerr << "Error: invalid hex color for --setupcolor: " << setupColorHex << "\n";
             return 1;
         }
         hasSetupColor = true;
     }
     if (!punchlineColorHex.empty()) {
-        if (!parseHexColor(punchlineColorHex, overridePunchline)) {
+        if (!parseColor(punchlineColorHex, overridePunchline)) {
             cerr << "Error: invalid hex color for --punchlinecolor: " << punchlineColorHex << "\n";
             return 1;
         }
         hasPunchlineColor = true;
     }
     if (!borderColorHex.empty()) {
-        if (!parseHexColor(borderColorHex, overrideBorder)) {
+        if (!parseColor(borderColorHex, overrideBorder)) {
             cerr << "Error: invalid hex color for --bordercolor: " << borderColorHex << "\n";
             return 1;
         }
