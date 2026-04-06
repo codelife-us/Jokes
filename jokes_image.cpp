@@ -329,8 +329,8 @@ struct Font {
         drawText(img, text, x, y, r, g, b, bold);
     }
 
-    // Word-wrap text into lines that fit within maxWidth
-    vector<string> wrapText(const string& text, int maxWidth) const {
+    // Word-wrap a single segment (no newlines) into lines that fit within maxWidth
+    vector<string> wrapSegment(const string& text, int maxWidth) const {
         vector<string> lines;
         string current;
         size_t i = 0;
@@ -348,6 +348,21 @@ struct Font {
             i = space + 1;
         }
         if (!current.empty()) lines.push_back(current);
+        return lines;
+    }
+
+    // Word-wrap text into lines; \n forces a line break before wrapping resumes
+    vector<string> wrapText(const string& text, int maxWidth) const {
+        vector<string> lines;
+        size_t start = 0;
+        while (true) {
+            size_t nl = text.find("\\n", start);
+            string segment = text.substr(start, nl == string::npos ? string::npos : nl - start);
+            auto wrapped = wrapSegment(segment, maxWidth);
+            lines.insert(lines.end(), wrapped.begin(), wrapped.end());
+            if (nl == string::npos) break;
+            start = nl + 2; // skip past the two-char \n
+        }
         return lines;
     }
 };
