@@ -76,6 +76,12 @@ static const map<string, Theme> THEMES = {
     { "parchment",{ {245, 230, 200}, {139,  94,  42}, { 90,  48,  16}, {139,  26,  16}, {160,120, 80} } },
     { "ice",     { {232, 244, 255}, { 64, 128, 192}, { 16,  64, 160}, {  0,  96, 128}, { 80,140,180} } },
     { "dusk",    { {26,  10,  48}, {224, 112,  48}, {192, 128, 255}, {255, 176,  96}, {160,120,180} } },
+    // --- dark background themes ---
+    { "ember",    { {20,  12,   8}, {200,  80,  20}, {240, 140,  40}, {255,  80,  20}, {160,100, 60} } },
+    { "midnight", { { 8,  12,  40}, {200, 170,  60}, {220, 220, 240}, {200, 170,  60}, {100,120,160} } },
+    { "galaxy",   { {12,   8,  28}, {160,  60, 255}, {200, 160, 255}, {255,  80, 200}, {140,100,180} } },
+    { "coffee",   { {28,  16,   8}, {180, 130,  70}, {240, 220, 190}, {210, 160,  80}, {150,110, 70} } },
+    { "slate",    { {25,  35,  50}, { 60, 180, 220}, {180, 210, 240}, { 60, 200, 220}, {120,150,170} } },
 };
 
 static void listThemes() {
@@ -381,14 +387,17 @@ bool jokeToJpeg(const Joke& joke, int jokeNumber, const string& filename,
                 const string& setupFontPath = "",
                 const string& punchlineFontPath = "",
                 const string& footerFontPath = "",
-                bool nopunchline = false) {
-    const int W         = 800, H = 500;
-    const int MARGIN    = 50;
-    const int FRAME     = 8;
-    const int THICKNESS = 5;
-    const int LINE_H    = (int)(54 * textScale);
-    const float FONT_SIZE       = 36.0f * textScale;
-    const float FONT_SIZE_SMALL = 18.0f * textScale;
+                bool nopunchline = false,
+                int imgW = 800, int imgH = 500) {
+    const int W = imgW, H = imgH;
+    // Scale layout constants proportionally to width (base: 800px wide)
+    const float S        = imgW / 800.0f;
+    const int MARGIN    = (int)(50 * S);
+    const int FRAME     = max(4, (int)(8  * S));
+    const int THICKNESS = max(2, (int)(5  * S));
+    const int LINE_H    = (int)(54 * textScale * S);
+    const float FONT_SIZE       = 36.0f * textScale * S;
+    const float FONT_SIZE_SMALL = 18.0f * textScale * S;
 
     Image img(W, H, theme.bg.r, theme.bg.g, theme.bg.b);
 
@@ -420,7 +429,7 @@ bool jokeToJpeg(const Joke& joke, int jokeNumber, const string& filename,
     // Resolve label text; empty string (explicit or nofooter) suppresses the footer
     Font smallFont;
     string label = hasLabelOverride ? labelOverride
-                                    : "Code Life Jokes #" + to_string(jokeNumber) + "  [" + joke.type + "]";
+                                    : "Groaners & Grins   #" + to_string(jokeNumber) + "  [" + joke.type + "]";
     // Substitute [type] and #N tokens in custom labels
     if (hasLabelOverride && !label.empty()) {
         string type_val = joke.type.empty() ? "" : joke.type;
@@ -623,9 +632,14 @@ void displayHelp() {
     cout << "                        Requires ffmpeg to be installed and in PATH\n";
     cout << "  --fade <seconds>      Used with --video: add a wipeleft transition when punchline appears\n";
     cout << "                        (e.g. --fade 0.8 for a 0.8-second wipe from the right)\n";
+    cout << "  --size WxH            Image dimensions in pixels (default: 800x500)\n";
+    cout << "                        e.g. --size 1080x1920 (portrait), --size 1920x1080 (widescreen)\n";
+    cout << "                        All layout constants (margins, font, border) scale with width\n";
     cout << "  -v,  --version        Print version and exit\n";
     cout << "  -h, --help            Display this help message\n\n";
-    cout << "Themes: classic, dark, sunset, ocean, retro, night, white, forest, candy, neon, parchment, ice, dusk, all\n\n";
+    cout << "Themes: classic, dark, sunset, ocean, retro, night, white, forest, candy, neon, parchment, ice, dusk\n";
+    cout << "        Dark backgrounds: ember, midnight, galaxy, coffee, slate\n";
+    cout << "        Use 'all' to render every theme at once\n\n";
     cout << "Examples:\n";
     cout << "  ./jokes_image -p 5                     - Save joke_5.jpg\n";
     cout << "  ./jokes_image -p 5 -o funny.jpg        - Save funny.jpg\n";
@@ -670,6 +684,7 @@ int main(int argc, char* argv[]) {
     string borderColorHex;
     int    videoSeconds = 0;
     float  fadeDuration = 0.0f;
+    int    imgW = 800, imgH = 500;
 
     try {
         for (int i = 1; i < argc; i++) {
@@ -825,6 +840,27 @@ int main(int argc, char* argv[]) {
                 }
             } else if (arg == "--noborder" || arg == "-nb") {
                 noborder = true;
+            } else if (arg == "--size") {
+                if (i + 1 < argc) {
+                    string val = argv[++i];
+                    size_t x = val.find('x');
+                    if (x == string::npos) x = val.find('X');
+                    if (x == string::npos) {
+                        cerr << "Error: --size requires WxH format (e.g. 1080x1920).\n";
+                        return 1;
+                    }
+                    try {
+                        imgW = stoi(val.substr(0, x));
+                        imgH = stoi(val.substr(x + 1));
+                        if (imgW < 100 || imgH < 100) throw invalid_argument("");
+                    } catch (...) {
+                        cerr << "Error: --size values must be integers >= 100 (e.g. --size 1080x1920).\n";
+                        return 1;
+                    }
+                } else {
+                    cerr << "Error: --size requires a WxH argument.\n";
+                    return 1;
+                }
             } else if (arg == "--video") {
                 if (i + 1 < argc) {
                     try {
@@ -941,7 +977,7 @@ int main(int argc, char* argv[]) {
                 ? (usingCustomText ? "joke_custom_" + kv.first + ".jpg"
                                    : "joke_" + to_string(jokeNumber) + "_" + kv.first + ".jpg")
                 : outputFile;
-            ok &= jokeToJpeg(joke, jokeNumber, file, fontPath, resolveTheme(kv.second), noborder, bgPath, nodim, roundedcorners, nofooter, labelOverride, hasLabelOverride, textScale, fgPath, halign, valign, setupFontPath, punchlineFontPath, footerFontPath);
+            ok &= jokeToJpeg(joke, jokeNumber, file, fontPath, resolveTheme(kv.second), noborder, bgPath, nodim, roundedcorners, nofooter, labelOverride, hasLabelOverride, textScale, fgPath, halign, valign, setupFontPath, punchlineFontPath, footerFontPath, false, imgW, imgH);
         }
         return ok ? 0 : 1;
     }
@@ -965,14 +1001,14 @@ int main(int argc, char* argv[]) {
         // Frame 1: setup only (no punchline)
         if (!jokeToJpeg(joke, jokeNumber, setupTmp, fontPath, resolvedTheme, noborder, bgPath, nodim,
                         roundedcorners, nofooter, labelOverride, hasLabelOverride, textScale, fgPath,
-                        halign, valign, setupFontPath, punchlineFontPath, footerFontPath, /*nopunchline=*/true)) {
+                        halign, valign, setupFontPath, punchlineFontPath, footerFontPath, /*nopunchline=*/true, imgW, imgH)) {
             return 1;
         }
 
         // Frame 2: full joke (setup + punchline)
         if (!jokeToJpeg(joke, jokeNumber, fullTmp, fontPath, resolvedTheme, noborder, bgPath, nodim,
                         roundedcorners, nofooter, labelOverride, hasLabelOverride, textScale, fgPath,
-                        halign, valign, setupFontPath, punchlineFontPath, footerFontPath, /*nopunchline=*/false)) {
+                        halign, valign, setupFontPath, punchlineFontPath, footerFontPath, /*nopunchline=*/false, imgW, imgH)) {
             remove(setupTmp.c_str());
             return 1;
         }
@@ -1027,5 +1063,5 @@ int main(int argc, char* argv[]) {
         outputFile = usingCustomText ? "joke_custom_" + themeName + ".jpg"
                                      : "joke_" + to_string(jokeNumber) + "_" + themeName + ".jpg";
 
-    return jokeToJpeg(joke, jokeNumber, outputFile, fontPath, resolvedTheme, noborder, bgPath, nodim, roundedcorners, nofooter, labelOverride, hasLabelOverride, textScale, fgPath, halign, valign, setupFontPath, punchlineFontPath, footerFontPath) ? 0 : 1;
+    return jokeToJpeg(joke, jokeNumber, outputFile, fontPath, resolvedTheme, noborder, bgPath, nodim, roundedcorners, nofooter, labelOverride, hasLabelOverride, textScale, fgPath, halign, valign, setupFontPath, punchlineFontPath, footerFontPath, false, imgW, imgH) ? 0 : 1;
 }

@@ -15,6 +15,9 @@ Generates a framed `.jpg` image of a joke from the jokes collection.
 ./jokes_image -p 5 -bg photo.jpg -nb      # background with no border
 ./jokes_image -p 5 -bg photo.jpg --nodim  # background without dimming
 ./jokes_image -p 5 --roundedcorners       # rounded border corners (or -rc)
+./jokes_image -p 5 --size 1080x1920               # portrait (Instagram story / TikTok)
+./jokes_image -p 5 --size 1920x1080               # widescreen
+./jokes_image -p 5 --size 1080x1080               # square
 ./jokes_image -p 5 --video 5                       # MP4: setup for 5s, punchline for 5s (requires ffmpeg)
 ./jokes_image -p 5 --video 5 --fade 0.8           # punchline wipes in from the right over 0.8 seconds
 ./jokes_image -p 5 --video 5 -o reveal.mp4        # custom output filename
@@ -63,6 +66,7 @@ Generates a framed `.jpg` image of a joke from the jokes collection.
 Color names are case-insensitive (`White`, `WHITE`, and `white` all work).
 | `-rc, --roundedcorners` | Use rounded corners on the border frame |
 | `-nb, --noborder` | Omit the decorative border frame |
+| `--size WxH` | Image dimensions in pixels (default: `800x500`). All layout constants (margins, font size, border) scale proportionally with width. e.g. `--size 1080x1920` (portrait), `--size 1920x1080` (widescreen) |
 | `--video <seconds>` | Generate an MP4: setup shown for N seconds, then setup+punchline for N more seconds. Requires `ffmpeg` in PATH. Output defaults to `joke_<N>_<theme>.mp4`; use `-o` to override |
 | `--fade <seconds>` | Used with `--video`: adds a `wipeleft` transition when the punchline appears (e.g. `--fade 0.8`). Without this flag the cut is instant |
 | `-v, --version` | Print version and exit |
@@ -85,6 +89,11 @@ Color names are case-insensitive (`White`, `WHITE`, and `white` all work).
 | `parchment` | Aged paper | Brown border, dark brown setup, dark red punchline |
 | `ice` | Pale blue-white | Steel blue border, deep blue setup, teal punchline |
 | `dusk` | Deep purple | Orange border, lavender setup, peach punchline |
+| `ember` | Near-black charcoal | Burnt-orange border, amber setup, bright orange punchline |
+| `midnight` | Deep navy | Gold border, silver-white setup, gold punchline |
+| `galaxy` | Near-black purple | Vivid purple border, lavender setup, hot pink punchline |
+| `coffee` | Dark espresso | Tan border, cream setup, caramel punchline |
+| `slate` | Dark blue-gray | Bright cyan border, light blue setup, cyan punchline |
 
 Use `-t all` to generate one file per theme in a single run (e.g. `joke_5_classic.jpg`, `joke_5_dark.jpg`, …). The `-o` flag is ignored when using `all`.
 
