@@ -395,7 +395,7 @@ const vector<Joke> jokes = {
     {"work", "A photon checks into a hotel and the bellhop asks if he has any luggage.", "The photon replies, \"No, I'm traveling light.\""},
     {"work", "What's a forklift?", "Food, usually."},
     {"work", "What do you call someone with no body and no nose?", "Nobody knows."},
-    {"work", "Gravity is one of the most fundamental forces in the universe,", "but if you remove it, you get gravy."},
+    {"work", "Gravity is one of the most fundamental forces in the universe.", "But if you remove it, you get gravy."},
     {"work", "What's a pirate's favorite content?", "WebinARRRRR!"},
     {"work", "What do biologists wear to work on Casual Friday?", "Genes."},
     {"work", "I quit my job at the pencil factory.", "It was pointless."},
