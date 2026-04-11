@@ -630,8 +630,28 @@ void displayHelp() {
     cout << "  -nb, --noborder       Omit the decorative border frame\n";
     cout << "  --video <seconds>     Generate an MP4: setup shown for N seconds, then punchline for N more\n";
     cout << "                        Requires ffmpeg to be installed and in PATH\n";
-    cout << "  --fade <seconds>      Used with --video: add a wipeleft transition when punchline appears\n";
-    cout << "                        (e.g. --fade 0.8 for a 0.8-second wipe from the right)\n";
+    cout << "  --fade <seconds>      Used with --video: add a transition when punchline appears (e.g. 0.8)\n";
+    cout << "  --fadehalf            Used with --fade: confine the transition to the bottom half only\n";
+    cout << "                        Top half stays completely static; bottom half fades in\n";
+    cout << "                        (ignores --fadetype; always uses opacity blend)\n";
+    cout << "  --fadetype <name>     Transition style (default: fade). Options:\n";
+    cout << "                          wipe       - reveal from right\n";
+    cout << "                          wiperight  - reveal from left\n";
+    cout << "                          wipeup     - reveal from bottom\n";
+    cout << "                          wipedown   - reveal from top\n";
+    cout << "                          fade       - opacity crossfade (default)\n";
+    cout << "                          fadeblack  - fade through black\n";
+    cout << "                          fadewhite  - fade through white\n";
+    cout << "                          slide      - slide in from right\n";
+    cout << "                          slideup    - slide in from bottom\n";
+    cout << "                          radial     - radial clock-wipe\n";
+    cout << "                          circle     - circle opens outward\n";
+    cout << "                          pixelize   - pixelate dissolve\n";
+    cout << "                          dissolve   - random pixel dissolve\n";
+    cout << "                          blur       - horizontal blur\n";
+    cout << "                          squeeze    - horizontal squeeze\n";
+    cout << "                          zoom       - zoom in reveal\n";
+    cout << "                          diagtl/tr  - diagonal from corner\n";
     cout << "  --size WxH            Image dimensions in pixels (default: 800x500)\n";
     cout << "                        e.g. --size 1080x1920 (portrait), --size 1920x1080 (widescreen)\n";
     cout << "                        All layout constants (margins, font, border) scale with width\n";
@@ -684,6 +704,8 @@ int main(int argc, char* argv[]) {
     string borderColorHex;
     int    videoSeconds = 0;
     float  fadeDuration = 0.0f;
+    string fadeType     = "fade"; // default
+    bool   fadeHalf     = false;
     int    imgW = 800, imgH = 500;
 
     try {
@@ -887,6 +909,17 @@ int main(int argc, char* argv[]) {
                     cerr << "Error: --fade requires a duration in seconds.\n";
                     return 1;
                 }
+            } else if (arg == "--fadetype") {
+                if (i + 1 < argc) {
+                    fadeType = argv[++i];
+                    // lowercase it
+                    for (auto& c : fadeType) c = (char)tolower((unsigned char)c);
+                } else {
+                    cerr << "Error: --fadetype requires a transition name.\n";
+                    return 1;
+                }
+            } else if (arg == "--fadehalf") {
+                fadeHalf = true;
             } else if (arg == "--version" || arg == "-v") {
                 cout << "jokes_image version " << VERSION << "\n";
                 return 0;
@@ -1017,10 +1050,41 @@ int main(int argc, char* argv[]) {
         // Setup frame holds for videoSeconds, punchline frame holds for videoSeconds more
         string cmd;
         if (fadeDuration > 0.0f) {
-            // xfade: setup for N seconds, then wipeleft transition for fadeDuration, then punchline for N seconds
-            // offset = N - fadeDuration (transition starts fadeDuration before end of setup segment)
-            // input1 duration = N + fadeDuration (so full N seconds of punchline show after transition)
-            // total output = 2*N seconds
+            // Map friendly --fadetype names to FFmpeg xfade transition names
+            static const map<string,string> FADE_TYPES = {
+                { "wipe",       "wipeleft"   }, // reveal from right (default)
+                { "wiperight",  "wiperight"  }, // reveal from left
+                { "wipeup",     "wipeup"     }, // reveal from bottom
+                { "wipedown",   "wipedown"   }, // reveal from top
+                { "fade",       "fade"        }, // opacity crossfade
+                { "fadeblack",  "fadeblack"  }, // fade through black
+                { "fadewhite",  "fadewhite"  }, // fade through white
+                { "slide",      "slideleft"  }, // slide in from right
+                { "slideup",    "slideup"    }, // slide in from bottom
+                { "radial",     "radial"     }, // radial clock-wipe
+                { "circle",     "circleopen" }, // circle opens outward
+                { "pixelize",   "pixelize"   }, // pixelate dissolve
+                { "dissolve",   "dissolve"   }, // random pixel dissolve
+                { "blur",       "hblur"      }, // horizontal blur
+                { "squeeze",    "squeezeh"   }, // horizontal squeeze
+                { "zoom",       "zoomin"     }, // zoom in reveal
+                { "diagtl",     "diagtl"     }, // diagonal from top-left
+                { "diagtr",     "diagtr"     }, // diagonal from top-right
+            };
+            auto it = FADE_TYPES.find(fadeType);
+            if (it == FADE_TYPES.end()) {
+                cerr << "Error: unknown --fadetype '" << fadeType << "'.\n";
+                cerr << "Valid types: wipe, wiperight, wipeup, wipedown, fade, fadeblack, fadewhite,\n"
+                        "             slide, slideup, radial, circle, pixelize, dissolve, blur,\n"
+                        "             squeeze, zoom, diagtl, diagtr\n";
+                remove(setupTmp.c_str());
+                remove(fullTmp.c_str());
+                return 1;
+            }
+            string xfadeName = it->second;
+
+            // xfade timing: setup plays N seconds, transition for D seconds, punchline plays N seconds
+            // offset = N - D, input1 duration = N + D, total output = 2*N
             float N = (float)videoSeconds;
             float D = fadeDuration;
             float offset = N - D;
@@ -1030,12 +1094,27 @@ int main(int argc, char* argv[]) {
             snprintf(buf, sizeof(buf), "%.3f", offset);  string oStr(buf);
             snprintf(buf, sizeof(buf), "%.3f", N);        string nStr(buf);
             snprintf(buf, sizeof(buf), "%.3f", N + D);   string n2Str(buf);
-            cmd = "ffmpeg -y"
-                  " -loop 1 -t " + nStr  + " -i \"" + setupTmp + "\""
-                  " -loop 1 -t " + n2Str + " -i \"" + fullTmp  + "\""
-                  " -filter_complex \"[0:v][1:v]xfade=transition=wipeleft:duration=" + dStr + ":offset=" + oStr + "[v]\""
-                  " -map \"[v]\" -pix_fmt yuv420p"
-                  " \"" + videoFile + "\"";
+
+            if (fadeHalf) {
+                // Custom xfade expression: opacity fade only in the bottom half (Y > H/2).
+                // Top half always shows frame A (setup unchanged). Bottom half blends A→B by progress P.
+                // FFmpeg commas inside if() must be escaped as \, within a filter option.
+                // Escaping chain: C++ \\\\, → string \\, → shell (double-quoted) \, → FFmpeg \, (escaped comma)
+                string expr = "if(gt(Y\\\\,H/2)\\\\,A*(1-P)+B*P\\\\,A)";
+                cmd = "ffmpeg -y"
+                      " -loop 1 -t " + nStr  + " -i \"" + setupTmp + "\""
+                      " -loop 1 -t " + n2Str + " -i \"" + fullTmp  + "\""
+                      " -filter_complex \"[0:v][1:v]xfade=transition=custom:duration=" + dStr + ":offset=" + oStr + ":expr=" + expr + "[v]\""
+                      " -map \"[v]\" -pix_fmt yuv420p"
+                      " \"" + videoFile + "\"";
+            } else {
+                cmd = "ffmpeg -y"
+                      " -loop 1 -t " + nStr  + " -i \"" + setupTmp + "\""
+                      " -loop 1 -t " + n2Str + " -i \"" + fullTmp  + "\""
+                      " -filter_complex \"[0:v][1:v]xfade=transition=" + xfadeName + ":duration=" + dStr + ":offset=" + oStr + "[v]\""
+                      " -map \"[v]\" -pix_fmt yuv420p"
+                      " \"" + videoFile + "\"";
+            }
         } else {
             cmd = "ffmpeg -y"
                   " -loop 1 -t " + to_string(videoSeconds) + " -i \"" + setupTmp + "\""

@@ -19,7 +19,11 @@ Generates a framed `.jpg` image of a joke from the jokes collection.
 ./jokes_image -p 5 --size 1920x1080               # widescreen
 ./jokes_image -p 5 --size 1080x1080               # square
 ./jokes_image -p 5 --video 5                       # MP4: setup for 5s, punchline for 5s (requires ffmpeg)
-./jokes_image -p 5 --video 5 --fade 0.8           # punchline wipes in from the right over 0.8 seconds
+./jokes_image -p 5 --video 5 --fade 0.8                     # opacity fade (default)
+./jokes_image -p 5 --video 5 --fade 0.8 --fadehalf          # fade only in bottom half
+./jokes_image -p 5 --video 5 --fade 0.8 --fadetype fade     # opacity crossfade
+./jokes_image -p 5 --video 5 --fade 1.0 --fadetype fadeblack # fade through black
+./jokes_image -p 5 --video 5 --fade 0.6 --fadetype circle   # circle opens
 ./jokes_image -p 5 --video 5 -o reveal.mp4        # custom output filename
 ./jokes_image -p 5 --nofooter                      # no footer, border stays intact
 ./jokes_image -p 5 --footer "My Custom Text"       # custom footer text
@@ -68,7 +72,32 @@ Color names are case-insensitive (`White`, `WHITE`, and `white` all work).
 | `-nb, --noborder` | Omit the decorative border frame |
 | `--size WxH` | Image dimensions in pixels (default: `800x500`). All layout constants (margins, font size, border) scale proportionally with width. e.g. `--size 1080x1920` (portrait), `--size 1920x1080` (widescreen) |
 | `--video <seconds>` | Generate an MP4: setup shown for N seconds, then setup+punchline for N more seconds. Requires `ffmpeg` in PATH. Output defaults to `joke_<N>_<theme>.mp4`; use `-o` to override |
-| `--fade <seconds>` | Used with `--video`: adds a `wipeleft` transition when the punchline appears (e.g. `--fade 0.8`). Without this flag the cut is instant |
+| `--fade <seconds>` | Used with `--video`: adds a transition when the punchline appears (e.g. `--fade 0.8`). Without this flag the cut is instant |
+| `--fadehalf` | Used with `--fade`: confines the transition to the bottom half of the frame only. The top half (setup text) stays completely static while the bottom half (punchline area) fades in. Always uses opacity blend regardless of `--fadetype` |
+| `--fadetype <name>` | Transition style used with `--fade` (default: `fade`). See table below |
+
+**Fade types:**
+
+| Name | Effect |
+|---|---|
+| `wipe` | Reveal from right |
+| `wiperight` | Reveal from left |
+| `wipeup` | Reveal from bottom |
+| `wipedown` | Reveal from top |
+| `fade` | Opacity crossfade (default) |
+| `fadeblack` | Fade through black |
+| `fadewhite` | Fade through white |
+| `slide` | Slide in from right |
+| `slideup` | Slide in from bottom |
+| `radial` | Radial clock-wipe |
+| `circle` | Circle opens outward |
+| `pixelize` | Pixelate dissolve |
+| `dissolve` | Random pixel dissolve |
+| `blur` | Horizontal blur |
+| `squeeze` | Horizontal squeeze |
+| `zoom` | Zoom in reveal |
+| `diagtl` | Diagonal from top-left corner |
+| `diagtr` | Diagonal from top-right corner |
 | `-v, --version` | Print version and exit |
 | `-h, --help` | Display help message |
 
