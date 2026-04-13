@@ -519,7 +519,7 @@ const vector<Joke> jokes = {
     {"dad", "What do you call a dinosaur that crashes their car?", "Tyrannosaurus wrecks."},
     {"dad", "What do you call a witch who lives at the beach?", "A sand-witch."},
     {"dad", "How does a vampire start a letter?", "Tomb it may concern."},
-    {"dad", "My wife told me I had to stop acting like a flamingo.", "I had to put my foot down."},
+    {"dad", "My wife told me to stop impersonating a flamingo.", "I had to put my foot down."},
     {"dad", "Why did the physics teacher break up with the biology teacher?", "There was no chemistry."},
     {"dad", "Why did the hipster burn his tongue?", "He drank his coffee before it was cool."},
     {"dad", "I want to start a hot air balloon company.", "Haven't got it off the ground yet."},
