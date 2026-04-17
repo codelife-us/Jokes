@@ -23,7 +23,6 @@
 // Jokes Image
 //     by Code Life
 //     generates a .jpg image of a joke
-//     version 2.0 - 3/30/2026
 // Description: Outputs a joke as a framed .jpg image file using stb_truetype + stb_image_write.
 //              Requires: stb_truetype.h, stb_image_write.h (drop in project directory)
 //              Usage: ./jokes_image -p <number> [-o <filename>] [-f <fontpath>] [-t <theme>] [--noborder]
@@ -45,7 +44,38 @@
 
 using namespace std;
 
-static const char* VERSION = "2.3";
+static const char* VERSION = "2.4";
+static const char* CONFIG_FILE = ".jokes_image";
+
+// ── Config file (.jokes_image in current directory) ───────────────────────────
+
+static map<string, string> loadConfig() {
+    map<string, string> cfg;
+    ifstream f(CONFIG_FILE);
+    if (!f.good()) return cfg;
+    string line;
+    while (getline(f, line)) {
+        if (!line.empty() && line.back() == '\r') line.pop_back();
+        size_t s = line.find_first_not_of(" \t");
+        if (s == string::npos || line[s] == '#') continue;
+        line = line.substr(s);
+        size_t eq = line.find('=');
+        if (eq == string::npos) continue;
+        string key = line.substr(0, eq);
+        string val = line.substr(eq + 1);
+        size_t ke = key.find_last_not_of(" \t");
+        if (ke != string::npos) key = key.substr(0, ke + 1);
+        size_t vs = val.find_first_not_of(" \t");
+        val = (vs != string::npos) ? val.substr(vs) : "";
+        if (!key.empty()) cfg[key] = val;
+    }
+    return cfg;
+}
+
+static string cfgGet(const map<string, string>& cfg, const string& key, const string& defaultVal) {
+    auto it = cfg.find(key);
+    return (it != cfg.end()) ? it->second : defaultVal;
+}
 
 // ----------------------------------------------------------------------------
 // Theme
@@ -632,8 +662,7 @@ void displayHelp() {
     cout << "                        Requires ffmpeg to be installed and in PATH\n";
     cout << "  --fade <seconds>      Used with --video: add a transition when punchline appears (e.g. 0.8)\n";
     cout << "  --fadehalf            Used with --fade: confine the transition to the bottom half only\n";
-    cout << "                        Top half stays completely static; bottom half fades in\n";
-    cout << "                        (ignores --fadetype; always uses opacity blend)\n";
+    cout << "                        Top half stays completely static; works with any --fadetype\n";
     cout << "  --fadetype <name>     Transition style (default: fade). Options:\n";
     cout << "                          wipe       - reveal from right\n";
     cout << "                          wiperight  - reveal from left\n";
@@ -655,8 +684,14 @@ void displayHelp() {
     cout << "  --size WxH            Image dimensions in pixels (default: 800x500)\n";
     cout << "                        e.g. --size 1080x1920 (portrait), --size 1920x1080 (widescreen)\n";
     cout << "                        All layout constants (margins, font, border) scale with width\n";
+    cout << "  --saveconfig          Save current settings to .jokes_image as new defaults\n";
+    cout << "  --showconfig          Print current effective settings and exit\n";
     cout << "  -v,  --version        Print version and exit\n";
     cout << "  -h, --help            Display this help message\n\n";
+    cout << "Config file (.jokes_image in current directory):\n";
+    cout << "  Supported keys: font  theme  textsize  size  noborder  nodim  roundedcorners\n";
+    cout << "                  nofooter  footer  setupcolor  punchlinecolor  bordercolor\n";
+    cout << "                  aligntext  setupfont  punchlinefont  footerfont  background  foreground\n\n";
     cout << "Themes: classic, dark, sunset, ocean, retro, night, white, forest, candy, neon, parchment, ice, dusk\n";
     cout << "        Dark backgrounds: ember, midnight, galaxy, coffee, slate\n";
     cout << "        Use 'all' to render every theme at once\n\n";
@@ -672,6 +707,8 @@ void displayHelp() {
     cout << "  ./jokes_image -p 5 --footer \"My Text\"     - Custom footer text\n";
     cout << "  ./jokes_image -p 5 --footer \"\"            - Suppress footer\n";
     cout << "  ./jokes_image --setup \"Why?\" --punchline \"Because!\"  - Custom text\n";
+    cout << "  ./jokes_image -t dark --roundedcorners --saveconfig  - Save dark+rounded as defaults\n";
+    cout << "  ./jokes_image --showconfig                           - Show active settings\n";
 }
 
 // ----------------------------------------------------------------------------
@@ -679,34 +716,62 @@ void displayHelp() {
 // ----------------------------------------------------------------------------
 
 int main(int argc, char* argv[]) {
+    map<string,string> cfg = loadConfig();
+
     int    jokeNumber  = -1;
     string outputFile;
-    string fontPath    = defaultFontPath();
-    string themeName   = "classic";
-    bool   noborder       = false;
-    bool   nodim          = false;
-    bool   roundedcorners = false;
-    bool   nofooter       = false;
-    float  textScale      = 1.0f;
-    string halign         = "center";
-    string valign         = "middle";
-    string setupFontPath;
-    string punchlineFontPath;
-    string footerFontPath;
-    string bgPath;
-    string fgPath;
+    string fontPath    = cfgGet(cfg, "font", defaultFontPath());
+    string themeName   = cfgGet(cfg, "theme", "classic");
+    bool   noborder       = cfgGet(cfg, "noborder",       "no") == "yes";
+    bool   nodim          = cfgGet(cfg, "nodim",          "no") == "yes";
+    bool   roundedcorners = cfgGet(cfg, "roundedcorners", "no") == "yes";
+    bool   nofooter       = cfgGet(cfg, "nofooter",       "no") == "yes";
+    float  textScale      = stof(cfgGet(cfg, "textsize",  "100")) / 100.0f;
+    string halign;
+    string valign;
+    {
+        string at = cfgGet(cfg, "aligntext", "center,middle");
+        size_t comma = at.find(',');
+        halign = (comma != string::npos) ? at.substr(0, comma) : "center";
+        valign = (comma != string::npos) ? at.substr(comma + 1) : "middle";
+    }
+    string setupFontPath     = cfgGet(cfg, "setupfont",     "");
+    string punchlineFontPath = cfgGet(cfg, "punchlinefont", "");
+    string footerFontPath    = cfgGet(cfg, "footerfont",    "");
+    string bgPath            = cfgGet(cfg, "background",    "");
+    string fgPath            = cfgGet(cfg, "foreground",    "");
     string customSetup;
     string customPunchline;
     string labelOverride;
-    bool   hasLabelOverride = false;
-    string setupColorHex;
-    string punchlineColorHex;
-    string borderColorHex;
+    bool   hasLabelOverride  = false;
+    if (cfg.count("footer")) {
+        labelOverride    = cfg.at("footer");
+        hasLabelOverride = true;
+    }
+    string setupColorHex     = cfgGet(cfg, "setupcolor",     "");
+    string punchlineColorHex = cfgGet(cfg, "punchlinecolor", "");
+    string borderColorHex    = cfgGet(cfg, "bordercolor",    "");
     int    videoSeconds = 0;
     float  fadeDuration = 0.0f;
-    string fadeType     = "fade"; // default
+    string fadeType     = "fade";
     bool   fadeHalf     = false;
     int    imgW = 800, imgH = 500;
+    {
+        string sz = cfgGet(cfg, "size", "");
+        if (!sz.empty()) {
+            size_t x = sz.find('x');
+            if (x == string::npos) x = sz.find('X');
+            if (x != string::npos) {
+                try {
+                    int w = stoi(sz.substr(0, x));
+                    int h = stoi(sz.substr(x + 1));
+                    if (w >= 100 && h >= 100) { imgW = w; imgH = h; }
+                } catch (...) {}
+            }
+        }
+    }
+    bool   saveConfig  = false;
+    bool   showConfig  = false;
 
     try {
         for (int i = 1; i < argc; i++) {
@@ -920,6 +985,10 @@ int main(int argc, char* argv[]) {
                 }
             } else if (arg == "--fadehalf") {
                 fadeHalf = true;
+            } else if (arg == "--saveconfig") {
+                saveConfig = true;
+            } else if (arg == "--showconfig") {
+                showConfig = true;
             } else if (arg == "--version" || arg == "-v") {
                 cout << "jokes_image version " << VERSION << "\n";
                 return 0;
@@ -935,6 +1004,66 @@ int main(int argc, char* argv[]) {
     } catch (...) {
         cerr << "Error parsing command line arguments.\n";
         return 1;
+    }
+
+    // ── --showconfig: print effective settings and exit ───────────────────
+    if (showConfig) {
+        cout << "Effective settings (config file + command-line):\n";
+        cout << "  font           = " << fontPath                                                         << "\n";
+        cout << "  theme          = " << themeName                                                        << "\n";
+        cout << "  textsize       = " << (int)(textScale * 100)                                           << "\n";
+        cout << "  size           = " << imgW << "x" << imgH                                              << "\n";
+        cout << "  noborder       = " << (noborder       ? "yes" : "no")                                  << "\n";
+        cout << "  nodim          = " << (nodim          ? "yes" : "no")                                  << "\n";
+        cout << "  roundedcorners = " << (roundedcorners ? "yes" : "no")                                  << "\n";
+        cout << "  nofooter       = " << (nofooter       ? "yes" : "no")                                  << "\n";
+        cout << "  footer         = " << (hasLabelOverride ? labelOverride : "(default)")                 << "\n";
+        cout << "  setupcolor     = " << (setupColorHex.empty()     ? "(theme default)" : setupColorHex)  << "\n";
+        cout << "  punchlinecolor = " << (punchlineColorHex.empty() ? "(theme default)" : punchlineColorHex) << "\n";
+        cout << "  bordercolor    = " << (borderColorHex.empty()    ? "(theme default)" : borderColorHex) << "\n";
+        cout << "  aligntext      = " << halign << "," << valign                                          << "\n";
+        cout << "  setupfont      = " << (setupFontPath.empty()     ? "(uses -f)" : setupFontPath)        << "\n";
+        cout << "  punchlinefont  = " << (punchlineFontPath.empty() ? "(uses -f)" : punchlineFontPath)    << "\n";
+        cout << "  footerfont     = " << (footerFontPath.empty()    ? "(uses -f)" : footerFontPath)       << "\n";
+        cout << "  background     = " << (bgPath.empty() ? "(none)" : bgPath)                            << "\n";
+        cout << "  foreground     = " << (fgPath.empty() ? "(none)" : fgPath)                            << "\n";
+        ifstream check(CONFIG_FILE);
+        if (check.good())
+            cout << "\nConfig file: ./" << CONFIG_FILE << " (loaded)\n";
+        else
+            cout << "\nConfig file: ./" << CONFIG_FILE << " (not found — using defaults)\n";
+        return 0;
+    }
+
+    // ── --saveconfig: write current settings to .jokes_image ─────────────
+    if (saveConfig) {
+        ofstream f(CONFIG_FILE);
+        if (!f) {
+            cerr << "Error: could not write '" << CONFIG_FILE << "'.\n";
+            return 1;
+        }
+        f << "# jokes_image configuration — generated by jokes_image --saveconfig\n";
+        f << "font           = " << fontPath                    << "\n";
+        f << "theme          = " << themeName                   << "\n";
+        f << "textsize       = " << (int)(textScale * 100)      << "\n";
+        f << "size           = " << imgW << "x" << imgH         << "\n";
+        f << "noborder       = " << (noborder       ? "yes" : "no") << "\n";
+        f << "nodim          = " << (nodim          ? "yes" : "no") << "\n";
+        f << "roundedcorners = " << (roundedcorners ? "yes" : "no") << "\n";
+        f << "nofooter       = " << (nofooter       ? "yes" : "no") << "\n";
+        if (hasLabelOverride)
+            f << "footer         = " << labelOverride           << "\n";
+        f << "setupcolor     = " << setupColorHex               << "\n";
+        f << "punchlinecolor = " << punchlineColorHex           << "\n";
+        f << "bordercolor    = " << borderColorHex              << "\n";
+        f << "aligntext      = " << halign << "," << valign     << "\n";
+        f << "setupfont      = " << setupFontPath               << "\n";
+        f << "punchlinefont  = " << punchlineFontPath           << "\n";
+        f << "footerfont     = " << footerFontPath              << "\n";
+        f << "background     = " << bgPath                      << "\n";
+        f << "foreground     = " << fgPath                      << "\n";
+        cerr << "Saved defaults to ./" << CONFIG_FILE << "\n";
+        return 0;
     }
 
     if (themeName != "all" && THEMES.find(themeName) == THEMES.end()) {
@@ -1096,15 +1225,27 @@ int main(int argc, char* argv[]) {
             snprintf(buf, sizeof(buf), "%.3f", N + D);   string n2Str(buf);
 
             if (fadeHalf) {
-                // Custom xfade expression: opacity fade only in the bottom half (Y > H/2).
-                // Top half always shows frame A (setup unchanged). Bottom half blends A→B by progress P.
-                // FFmpeg commas inside if() must be escaped as \, within a filter option.
-                // Escaping chain: C++ \\\\, → string \\, → shell (double-quoted) \, → FFmpeg \, (escaped comma)
-                string expr = "if(gt(Y\\\\,H/2)\\\\,A*(1-P)+B*P\\\\,A)";
+                // Crop-xfade-overlay approach:
+                //   Input 0: setup frame, N sec           (bottom-half crop source)
+                //   Input 1: full frame,  N+D sec         (bottom-half crop source)
+                //   Input 2: full frame,  2N sec           (overlay base — full frame throughout)
+                //
+                // The bottom halves of inputs 0 and 1 are xfaded with the chosen transition,
+                // then overlaid onto the bottom half of input 2. Input 2's top half always shows
+                // the setup text, completely static. Total output = 2N seconds.
+                char buf2[32];
+                snprintf(buf2, sizeof(buf2), "%.3f", N * 2.0f);
+                string twoNStr(buf2);
+                string halfH = to_string(imgH / 2);
+                string fc = "[0:v]crop=iw:ih/2:0:ih/2[b0];"
+                            "[1:v]crop=iw:ih/2:0:ih/2[b1];"
+                            "[b0][b1]xfade=transition=" + xfadeName + ":duration=" + dStr + ":offset=" + oStr + "[bfade];"
+                            "[2:v][bfade]overlay=0:" + halfH + "[v]";
                 cmd = "ffmpeg -y"
-                      " -loop 1 -t " + nStr  + " -i \"" + setupTmp + "\""
-                      " -loop 1 -t " + n2Str + " -i \"" + fullTmp  + "\""
-                      " -filter_complex \"[0:v][1:v]xfade=transition=custom:duration=" + dStr + ":offset=" + oStr + ":expr=" + expr + "[v]\""
+                      " -loop 1 -t " + nStr    + " -i \"" + setupTmp + "\""
+                      " -loop 1 -t " + n2Str   + " -i \"" + fullTmp  + "\""
+                      " -loop 1 -t " + twoNStr + " -i \"" + fullTmp  + "\""
+                      " -filter_complex \"" + fc + "\""
                       " -map \"[v]\" -pix_fmt yuv420p"
                       " \"" + videoFile + "\"";
             } else {

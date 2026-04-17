@@ -39,6 +39,8 @@ Generates a framed `.jpg` image of a joke from the jokes collection.
 ./jokes_image -p 5 --setupcolor "#ff6600" --punchlinecolor "#ffffff"  # hex colors
 ./jokes_image --version                    # print version (or -v)
 ./jokes_image -h                            # help
+./jokes_image -t dark --roundedcorners --saveconfig  # save dark+rounded as defaults
+./jokes_image --showconfig                           # show active settings
 ```
 
 ## Options
@@ -73,7 +75,7 @@ Color names are case-insensitive (`White`, `WHITE`, and `white` all work).
 | `--size WxH` | Image dimensions in pixels (default: `800x500`). All layout constants (margins, font size, border) scale proportionally with width. e.g. `--size 1080x1920` (portrait), `--size 1920x1080` (widescreen) |
 | `--video <seconds>` | Generate an MP4: setup shown for N seconds, then setup+punchline for N more seconds. Requires `ffmpeg` in PATH. Output defaults to `joke_<N>_<theme>.mp4`; use `-o` to override |
 | `--fade <seconds>` | Used with `--video`: adds a transition when the punchline appears (e.g. `--fade 0.8`). Without this flag the cut is instant |
-| `--fadehalf` | Used with `--fade`: confines the transition to the bottom half of the frame only. The top half (setup text) stays completely static while the bottom half (punchline area) fades in. Always uses opacity blend regardless of `--fadetype` |
+| `--fadehalf` | Used with `--fade`: confines the transition to the bottom half of the frame only. The top half (setup text) stays completely static while the bottom half (punchline area) transitions in. Works with any `--fadetype` |
 | `--fadetype <name>` | Transition style used with `--fade` (default: `fade`). See table below |
 
 **Fade types:**
@@ -98,8 +100,33 @@ Color names are case-insensitive (`White`, `WHITE`, and `white` all work).
 | `zoom` | Zoom in reveal |
 | `diagtl` | Diagonal from top-left corner |
 | `diagtr` | Diagonal from top-right corner |
+| `--saveconfig` | Save current settings to `.jokes_image` in the current directory as new defaults |
+| `--showconfig` | Print the current effective settings (config file + command-line) and exit |
 | `-v, --version` | Print version and exit |
 | `-h, --help` | Display help message |
+
+## Config file (.jokes_image)
+
+Place a `.jokes_image` file in any directory to set persistent defaults for that location. Create or update it with `--saveconfig`:
+
+```bash
+./jokes_image -t dark --roundedcorners --saveconfig   # save dark theme + rounded corners as defaults
+./jokes_image --showconfig                             # inspect active settings
+```
+
+Lines beginning with `#` are comments. All option values except `--setup`, `--punchline`, `-p`, `-o`, and video-related flags can be saved.
+
+**Supported keys:** `font` `theme` `textsize` `size` `noborder` `nodim` `roundedcorners` `nofooter` `footer` `setupcolor` `punchlinecolor` `bordercolor` `aligntext` `setupfont` `punchlinefont` `footerfont` `background` `foreground`
+
+Example `.jokes_image`:
+```
+# jokes_image configuration
+theme          = dark
+roundedcorners = yes
+textsize       = 120
+```
+
+Command-line options always override config file values.
 
 ## Themes
 
