@@ -536,5 +536,14 @@ const vector<Joke> jokes = {
     {"dad", "Did you know the guy who invented the wind chill factor died? He was 85.", "But he felt like he was only 74."},
     {"aging", "I finally know why they call me a grown up.", "I groan every time I get up."},
     {"math", "Where do math teachers go on vacation?", "Times Square"},
-    {"dad", "I told my soap a joke...", "It didn’t laugh, but it did crack up"}
+    {"dad", "I told my soap a joke...", "It didn’t laugh, but it did crack up"},
+    {"dad", "Dogs can't operate MRI machines.", "But catscan."},
+    {"dad", "Why shouldn't pigs drive?", "They hog the road."},
+    {"dad", "What does corn say when it gets a compliment?", "Aw, shucks."},
+    {"dad", "I invented a pencil with an eraser on each end.", "There's no point to it."},
+    {"dad", "The wedding was so beautiful.", "Even the cake was in tiers."},
+    {"dad", "I don't know much about the best things in Switzerland.", "But their flag is a big plus."},
+    {"dad","I went to a school for magicians but failed the last exam.","They were all trick questions."},
+    {"dad", "I applied for a job down at the diner. I told them I really could bring a lot to the table.", "They asked if I could also clear it."},
+    {"dad", "What do you call a line of men waiting to get haircuts?", "A barber-queue."}
 };
