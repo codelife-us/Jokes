@@ -60,7 +60,7 @@ g++ -std=c++20 dadjokes.cpp -o dadjokes
 
 ## Features
 
-- at least 233 Dad Jokes
+- at least 310 Dad Jokes
 - Random selection or display all jokes
 - Colored output by default (cyan for setup, green for punchline), with `--nocolor` to disable
 - Separate line formatting option for more compact format
