@@ -545,5 +545,6 @@ const vector<Joke> jokes = {
     {"dad", "I don't know much about the best things in Switzerland.", "But their flag is a big plus."},
     {"dad","I went to a school for magicians but failed the last exam.","They were all trick questions."},
     {"dad", "I applied for a job down at the diner. I told them I really could bring a lot to the table.", "They asked if I could also clear it."},
-    {"dad", "What do you call a line of men waiting to get haircuts?", "A barber-queue."}
+    {"dad", "What do you call a line of men waiting to get haircuts?", "A barber-queue."},
+    {"dad", "Did you hear about the guy who fell into an upholstery machine?", "He's fully recovered."},
 };
