@@ -547,4 +547,5 @@ const vector<Joke> jokes = {
     {"dad", "I applied for a job down at the diner. I told them I really could bring a lot to the table.", "They asked if I could also clear it."},
     {"dad", "What do you call a line of men waiting to get haircuts?", "A barber-queue."},
     {"dad", "Did you hear about the guy who fell into an upholstery machine?", "He's fully recovered."},
+    {"dad", "Why is it a bad idea to fall in love with a tennis player?", "Because love means nothing to them."}
 };
