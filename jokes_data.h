@@ -547,5 +547,11 @@ const vector<Joke> jokes = {
     {"dad", "I applied for a job down at the diner. I told them I really could bring a lot to the table.", "They asked if I could also clear it."},
     {"dad", "What do you call a line of men waiting to get haircuts?", "A barber-queue."},
     {"dad", "Did you hear about the guy who fell into an upholstery machine?", "He's fully recovered."},
-    {"dad", "Why is it a bad idea to fall in love with a tennis player?", "Because love means nothing to them."}
+    {"dad", "Why is it a bad idea to fall in love with a tennis player?", "Because love means nothing to them."},
+    {"dad", "Teacher: Billy, can you use the word 'gruesome' in a sentence?", "Billy: Yes ma'am... I used to short, then I grew some."},
+    {"dad", "In ancient Rome, there were four poisons. Poisons I, II, and III caused instant death.", "Poison IV caused constant itching."},
+    {"dad", "What's it called when a cow spies on you?", "A steakout."},
+    {"dad", "Did you hear about the big Lego sale?", "People were lined up for blocks."},
+    {"dad", "I asked the surgeon if I could administer my own anesthesia...", "He said, \"Sure knock yourself out.\""},
+    {"dad", "A woman fainted and fell onto the baggage carousel at the airport.", "But she's slowly coming around now."}
 };
